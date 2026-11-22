@@ -1,3 +1,0 @@
-# Never execute scripts in the upload folders
-RemoveHandler .php .phtml .php5
-php_flag engine off
