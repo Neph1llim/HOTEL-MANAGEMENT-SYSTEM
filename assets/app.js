@@ -4,7 +4,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 const post = async (a, d = {}) => { const f = new FormData(); f.append('a', a); for (const k in d) f.append(k, d[k]); return (await fetch('api.php', { method: 'POST', body: f })).json() };
 /* English text is the key; add more pairs here to translate more of the site */
 const TL = {
-  "Hall": "Hall", "Book the hall": "I-book ang hall", "Staff login": "Pag-log in ng staff", "Our rooms": "Aming mga kwarto", "Photos shown here are placeholders. Add your own in assets/img using the file name shown on each card.": "Mga placeholder lamang ang mga larawan dito. Magdagdag ng sarili ninyo sa assets/img gamit ang pangalan ng file sa bawat card.", "Good for 2 to 3 guests": "Para sa 2 hanggang 3 bisita", "Good for 4 to 5 guests": "Para sa 4 hanggang 5 bisita", "Good for up to 30 guests (maximum 40)": "Para sa hanggang 30 bisita (pinakamarami 40)", "per night": "bawat gabi", "Book this room": "I-book ang kwartong ito", "See room photos": "Tingnan ang mga larawan ng kwarto", "Welcome to Bella Vista": "Maligayang pagdating sa Bella Vista", "Log in": "Mag-log in", "Log in or register": "Mag-log in o magparehistro", "Create an account": "Gumawa ng account", "Password": "Password", "My reservations": "Aking mga reserbasyon", "Account profile": "Profile ng account", "Save changes": "I-save ang pagbabago", "Current password": "Kasalukuyang password", "New password": "Bagong password", "Pay now": "Magbayad na", "No reservations yet.": "Wala pang reserbasyon.", "Cancel reservation": "Kanselahin ang reserbasyon", "Cancel this reservation? Your downpayment will be refunded according to the hotel's policy.": "Kakanselahin ang reserbasyon na ito? Ibabalik ang downpayment ayon sa patakaran ng hotel.", "Cancel this reservation? Check-in is less than 3 days away, so the downpayment is non-refundable.": "Kakanselahin ang reserbasyon na ito? Wala pang 3 araw bago ang check-in, kaya hindi na maibabalik ang downpayment.", "Reservation cancelled. Free cancellation applied: please contact the hotel about your refund.": "Nakansela na ang reserbasyon. Libreng pagkansela: makipag-ugnayan sa hotel tungkol sa refund.", "Reservation cancelled. Per the Terms & Conditions, the downpayment is non-refundable.": "Nakansela na ang reserbasyon. Ayon sa Mga Tuntunin at Kondisyon, hindi na maibabalik ang downpayment.", "Reserve a Room": "Mag-reserba ng kwarto", "My Reservations": "Aking mga Reserbasyon", "My Points & Rewards": "Aking Puntos at Gantimpala", "My Vouchers": "Aking mga Voucher", "Account Profile": "Profile ng Account", "Terms & Conditions": "Mga Tuntunin at Kondisyon", "Log out": "Mag-log out", "Scan the QR code and pay the downpayment, then upload your proof of payment.": "I-scan ang QR code at bayaran ang downpayment, saka i-upload ang patunay ng bayad.", "Payment reference no.": "Reference no. ng bayad", "Amount paid": "Halagang binayad", "Proof of payment (screenshot)": "Patunay ng bayad (screenshot)", "Submit payment": "Isumite ang bayad", "Payment submitted": "Naisumite na ang bayad", "The hotel will verify your proof of payment and confirm your reservation.": "Susuriin ng hotel ang patunay ng bayad at kukumpirmahin ang reserbasyon.", "About us": "Tungkol sa amin", "Rooms": "Mga Kwarto", "Book now": "Mag-book na", "Rewards": "Gantimpala", "Foothills of the mountains, Philippines": "Paanan ng kabundukan, Pilipinas", "Open Monday to Sunday": "Bukas Lunes hanggang Linggo", "Check-in": "Check-in", "Check-out": "Check-out",
+  "Hall": "Hall", "Make a reservation": "Gumawa ng reserbasyon", "Your Reservation Summary": "Buod ng Inyong Reserbasyon", "Your vouchers": "Mga voucher ninyo", "Voucher code": "Code ng voucher", "Voucher applied": "Nagamit ang voucher", "Unavailable": "Hindi available", "Book / Select Room": "I-book / Piliin ang Kwarto", "No rooms are available for these dates. Please try other dates.": "Walang available na kwarto sa mga petsang ito. Subukan ang ibang petsa.", "Results update automatically as you change the dates, guests or voucher. Fully booked rooms are hidden.": "Awtomatikong nag-a-update ang resulta kapag binago ang petsa, bisita o voucher. Nakatago ang mga kwartong puno na.", "Press and hold on your check-in date, then drag to your check-out date and release.": "Pindutin at hawakan ang petsa ng check-in, i-drag sa petsa ng check-out, saka bitawan.", "Book the hall": "I-book ang hall", "Staff login": "Pag-log in ng staff", "Our rooms": "Aming mga kwarto", "Photos shown here are placeholders. Add your own in assets/img using the file name shown on each card.": "Mga placeholder lamang ang mga larawan dito. Magdagdag ng sarili ninyo sa assets/img gamit ang pangalan ng file sa bawat card.", "Good for 2 to 3 guests": "Para sa 2 hanggang 3 bisita", "Good for 4 to 5 guests": "Para sa 4 hanggang 5 bisita", "Good for up to 30 guests (maximum 40)": "Para sa hanggang 30 bisita (pinakamarami 40)", "per night": "bawat gabi", "Book this room": "I-book ang kwartong ito", "See room photos": "Tingnan ang mga larawan ng kwarto", "Welcome to Bella Vista": "Maligayang pagdating sa Bella Vista", "Log in": "Mag-log in", "Log in or register": "Mag-log in o magparehistro", "Create an account": "Gumawa ng account", "Password": "Password", "My reservations": "Aking mga reserbasyon", "Account profile": "Profile ng account", "Save changes": "I-save ang pagbabago", "Current password": "Kasalukuyang password", "New password": "Bagong password", "Pay now": "Magbayad na", "No reservations yet.": "Wala pang reserbasyon.", "Cancel reservation": "Kanselahin ang reserbasyon", "Cancel this reservation? Your downpayment will be refunded according to the hotel's policy.": "Kakanselahin ang reserbasyon na ito? Ibabalik ang downpayment ayon sa patakaran ng hotel.", "Cancel this reservation? Check-in is less than 3 days away, so the downpayment is non-refundable.": "Kakanselahin ang reserbasyon na ito? Wala pang 3 araw bago ang check-in, kaya hindi na maibabalik ang downpayment.", "Reservation cancelled. Free cancellation applied: please contact the hotel about your refund.": "Nakansela na ang reserbasyon. Libreng pagkansela: makipag-ugnayan sa hotel tungkol sa refund.", "Reservation cancelled. Per the Terms & Conditions, the downpayment is non-refundable.": "Nakansela na ang reserbasyon. Ayon sa Mga Tuntunin at Kondisyon, hindi na maibabalik ang downpayment.", "Reserve a Room": "Mag-reserba ng kwarto", "My Reservations": "Aking mga Reserbasyon", "My Points & Rewards": "Aking Puntos at Gantimpala", "My Vouchers": "Aking mga Voucher", "Account Profile": "Profile ng Account", "Terms & Conditions": "Mga Tuntunin at Kondisyon", "Log out": "Mag-log out", "Scan the QR code and pay the downpayment, then upload your proof of payment.": "I-scan ang QR code at bayaran ang downpayment, saka i-upload ang patunay ng bayad.", "Payment reference no.": "Reference no. ng bayad", "Amount paid": "Halagang binayad", "Proof of payment (screenshot)": "Patunay ng bayad (screenshot)", "Submit payment": "Isumite ang bayad", "Payment submitted": "Naisumite na ang bayad", "The hotel will verify your proof of payment and confirm your reservation.": "Susuriin ng hotel ang patunay ng bayad at kukumpirmahin ang reserbasyon.", "About us": "Tungkol sa amin", "Rooms": "Mga Kwarto", "Book now": "Mag-book na", "Rewards": "Gantimpala", "Foothills of the mountains, Philippines": "Paanan ng kabundukan, Pilipinas", "Open Monday to Sunday": "Bukas Lunes hanggang Linggo", "Check-in": "Check-in", "Check-out": "Check-out",
   "Rest at the foot of the mountains": "Magpahinga sa paanan ng kabundukan", "A quiet eco-chic retreat for families, travelers and celebrations.": "Tahimik na eco-chic na pahingahan para sa pamilya, manlalakbay at mga selebrasyon.",
   "Bella Vista Hotel & Events Place is a premier eco-chic boutique hotel and events destination at the scenic foothills of the mountains. It offers a tranquil, elegant and exclusive retreat for families, tourists and corporate clients, away from the hustle and bustle of the city.": "Ang Bella Vista Hotel & Events Place ay isang premyadong eco-chic boutique hotel at lugar para sa mga okasyon sa magandang paanan ng kabundukan. Tahimik, elegante at eksklusibong pahingahan ito para sa pamilya, turista at kliyenteng korporasyon, malayo sa ingay ng lungsod.",
   "Our history": "Aming kasaysayan", "Established in 2021, Bella Vista began as an exclusive family-owned resthouse. Growing demand for intimate celebrations and restful getaways turned it into a boutique hotel and events venue, known for warm Filipino hospitality, picturesque views and top-tier service.": "Itinatag noong 2021, nagsimula ang Bella Vista bilang pribadong resthouse ng isang pamilya. Dahil sa dumaraming nais ng payapang bakasyon at maliliit na selebrasyon, naging boutique hotel at events venue ito, na kilala sa magiliw na pagtanggap ng Pilipino, magagandang tanawin at de-kalidad na serbisyo.",
@@ -54,7 +54,7 @@ document.addEventListener('submit', async e => {
   f.closest('.pay').innerHTML = `<h3 data-t>Payment submitted</h3><p class="mu" data-t>The hotel will verify your proof of payment and confirm your reservation.</p>`; applyLang()
 });
 if ($('#lf')) {
-  const go = async f => { const r = await post(f.id == 'lf' ? 'glogin' : 'register', Object.fromEntries(new FormData(f))); if (r.error) $('#lerr').textContent = r.error; else location = 'reserve.php' };
+  const go = async f => { const r = await post(f.id == 'lf' ? 'glogin' : 'register', Object.fromEntries(new FormData(f))); if (r.error) $('#lerr').textContent = r.error; else { const n = new URLSearchParams(location.search).get('next'); location = n && /^make-reservation\.php(\?|$)/.test(n) ? n : 'reserve.php' } };
   $('#lf').onsubmit = e => { e.preventDefault(); go(e.target) }; $('#rg').onsubmit = e => { e.preventDefault(); go(e.target) }
 }
 if ($('#acf')) {
@@ -97,60 +97,136 @@ if ($('#bklist')) {
   });
 }
 
-/* ---- booking ---- */
+/* ---- check availability: live results, full rooms hidden, drag-to-select calendar ---- */
 const bf = $('#bf');
 if (bf) {
-  const fd = () => Object.fromEntries(new FormData(bf)), box = $('#results'); let sel = null;
+  const fd = () => Object.fromEntries(new FormData(bf)), box = $('#results');
   bf.ci.min = bf.co.min = ymd(new Date());
-  bf.ci.onchange = () => { bf.co.min = bf.ci.value };
-  ready.then(() => { if (ME) ME.vouchers.forEach(v => bf.voucher.add(new Option(v.prize, v.id))) });
   const slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  bf.onsubmit = async e => {
-    e.preventDefault(); const r = await post('search', fd());
-    if (r.error) { box.innerHTML = `<p class="err" data-t>${esc(r.error)}</p>`; applyLang(); return }
-    box.innerHTML = r.rooms.map(q => {
-      const ok = !q.error && q.free, n = esc(q.room.name); return `<article class="card"><div class="rimg"><span>${n}</span><img src="assets/img/${slug(q.room.name)}.jpg" alt="${n}" onerror="this.remove()"></div><h3>${n}</h3>` + (ok ?
-        `<p>${q.nights} <span data-t>night(s)</span> · <span data-t>${q.room.type == 'hall' ? 'Hall' : 'Room'}</span> ${peso(q.sub)}</p><p><span data-t>Extra guest fee</span> ${peso(q.extra)}</p><p><span data-t>Discount</span> −${peso(q.disc)}</p><p><b><span data-t>Total</span> ${peso(q.total)}</b></p><p class="mu"><span data-t>Downpayment</span> ${peso(q.down)}</p><button class="btn" data-room="${q.room.id}" data-t>Reserve</button>`
-        : `<p class="err" data-t>${esc(q.error || 'Not available for these dates')}</p>`) + '</article>'
-    }).join(''); applyLang()
+  const addDays = (d, n) => { const x = new Date(d + 'T00:00:00'); x.setDate(x.getDate() + n); return ymd(x) };
+  let calMonth = ymd(new Date()).slice(0, 7), calData = null, calRoom = '', freeIds = null, seq = 0;
+  ready.then(() => { if (ME) ME.vouchers.forEach(v => bf.voucher.add(new Option(`${v.prize} (${v.code})`, v.id))); search() });
+  const link = (id, q) => { const u = new URLSearchParams({ room: id, ci: bf.ci.value, co: bf.co.value, pax: bf.pax.value }); if (bf.voucher.value) u.set('voucher', bf.voucher.value); return 'make-reservation.php?' + u };
+  const syncRoomList = () => {
+    const sel = $('#croom'); if (!calData) return; const keep = calRoom;
+    sel.length = 1; sel.options[0].textContent = t('All rooms (rooms free)');
+    calData.rooms.filter(r => !freeIds || freeIds.has(+r.id)).forEach(r => sel.add(new Option(r.name, r.id)));
+    if (keep && ![...sel.options].some(o => o.value == keep)) calRoom = ''; sel.value = calRoom
   };
-  box.onclick = e => { const b = e.target.closest('[data-room]'); if (!b) return; if (!ME) { location = 'login.php'; return } sel = b.dataset.room; $('#agree').checked = false; $('#tc').showModal() };
-  $('#cancelTc').onclick = () => $('#tc').close();
-  $('#confirm').onclick = async () => {
-    if (!$('#agree').checked) return alert(t('Please accept the Terms & Conditions'));
-    const r = await post('book', { ...fd(), room: sel, agree: 1 }); $('#tc').close();
-    if (r.error) { box.innerHTML = `<p class="err">${esc(r.error)}</p>`; return }
-    box.innerHTML = `<div class="card pay"><h3 data-t>Reservation received</h3><p><span data-t>Reference</span>: <b>${r.ref}</b></p><p><span data-t>Total</span> ${peso(r.total)} · <b><span data-t>Downpayment</span> ${peso(r.down)}</b></p><p class="warn" data-t>Please pay the downpayment and upload your proof within 24 hours, or the room will be released.</p>${payForm(r.ref, r.down)}</div>`; applyLang(); loadCal()
-  };
-  const qs = new URLSearchParams(location.search);['ci', 'co', 'pax'].forEach(k => { if (qs.get(k)) bf[k].value = qs.get(k) }); if (qs.get('ci') && qs.get('co')) bf.requestSubmit();
+  async function search() {
+    const my = ++seq;
+    if (!bf.ci.value || !bf.co.value || bf.co.value <= bf.ci.value || !bf.pax.value) { freeIds = null; box.innerHTML = ''; syncRoomList(); drawCal(); return }
+    const r = await post('search', fd()); if (my != seq) return;
+    if (r.error) { freeIds = null; box.innerHTML = `<p class="err" data-t>${esc(r.error)}</p>`; applyLang(); syncRoomList(); drawCal(); return }
+    const open = r.rooms.filter(q => q.free);                       /* full rooms are hidden */
+    freeIds = new Set(open.map(q => +q.room.id));
+    box.innerHTML = open.length ? open.map(q => {
+      const ok = !q.error, n = esc(q.room.name); return `<article class="card"><div class="rimg"><span>${n}</span><img src="assets/img/${slug(q.room.name)}.jpg" alt="${n}" onerror="this.remove()"></div><h3>${n}</h3>` + (ok ?
+        `<p>${q.nights} <span data-t>night(s)</span> · <span data-t>${q.room.type == 'hall' ? 'Hall' : 'Room'}</span> ${peso(q.sub)}</p><p><span data-t>Extra guest fee</span> ${peso(q.extra)}</p><p><span data-t>Discount</span> −${peso(q.disc)}</p><p><b><span data-t>Total</span> ${peso(q.total)}</b></p><p class="mu"><span data-t>Downpayment</span> ${peso(q.down)}</p><a class="btn" href="${link(q.room.id, q)}" data-t>Book / Select Room</a>`
+        : `<p class="err" data-t>${esc(q.error)}</p><a class="btn ghost" href="${link(q.room.id, q)}" data-t>Book / Select Room</a>`) + '</article>'
+    }).join('') : `<p class="mu" data-t>No rooms are available for these dates. Please try other dates.</p>`;
+    applyLang(); syncRoomList(); drawCal()
+  }
+  let tm; const live = () => { clearTimeout(tm); tm = setTimeout(search, 200) };
+  bf.onsubmit = e => { e.preventDefault(); search() };
+  bf.ci.addEventListener('change', () => { bf.co.min = bf.ci.value; if (bf.co.value && bf.co.value <= bf.ci.value) bf.co.value = addDays(bf.ci.value, 1) });
+  ['ci', 'co', 'pax', 'voucher'].forEach(k => { bf[k].addEventListener('change', live); bf[k].addEventListener('input', live) });
+  const qs = new URLSearchParams(location.search); ['ci', 'co', 'pax'].forEach(k => { if (qs.get(k)) bf[k].value = qs.get(k) });
 
   /* ---- availability calendar: each night is free or booked, for one room or for all rooms ---- */
-  let calMonth = ymd(new Date()).slice(0, 7), calData = null, calRoom = '';
   const MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  const drawCal = () => {
+  let drag = null; /* {a: anchor day, b: current day} while the pointer is held down */
+  const range = () => drag ? [drag.a < drag.b ? drag.a : drag.b, drag.a < drag.b ? drag.b : drag.a] : [bf.ci.value, bf.co.value];
+  function drawCal() {
     if (!calData) return; const [Y, M] = calMonth.split('-').map(Number), first = new Date(Y, M - 1, 1), days = new Date(Y, M, 0).getDate(), rooms = calData.rooms.filter(r => !calRoom || r.id == calRoom);
-    $('#cmon').textContent = `${MON[M - 1]} ${Y}`;
-    const sel = $('#croom'); if (sel.options.length < 2) { calData.rooms.forEach(r => sel.add(new Option(r.name, r.id))); sel.options[0].textContent = t('All rooms (rooms free)') }
+    $('#cmon').textContent = `${MON[M - 1]} ${Y}`; const [lo, hi] = range();
     let h = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => `<b class="dow">${d}</b>`).join('') + '<i></i>'.repeat(first.getDay());
     for (let d = 1; d <= days; d++) {
       const day = `${calMonth}-${String(d).padStart(2, '0')}`, past = day < calData.today;
       const taken = new Set(calData.bookings.filter(b => b.checkin <= day && b.checkout > day).map(b => +b.room_id)), free = rooms.filter(r => !taken.has(+r.id)).length;
       const st = past ? 'past' : free == 0 ? 'full' : free < rooms.length ? 'part' : 'open', lbl = past ? '' : !calRoom ? `${free}/${rooms.length}` : free ? t('Free') : t('Booked');
-      h += `<button type="button" class="day ${st}${day == bf.ci.value || day == bf.co.value ? ' pick' : ''}" data-day="${day}"${past ? ' disabled' : ''}><span>${d}</span><small>${lbl}</small></button>`
+      const inR = lo && hi && day >= lo && day <= hi;
+      h += `<button type="button" class="day ${st}${day == lo || day == hi ? ' pick' : ''}${inR ? ' inr' : ''}" data-day="${day}"${past ? ' disabled' : ''}><span>${d}</span><small>${lbl}</small></button>`
     }
-    $('#cal').innerHTML = h
-  };
-  const loadCal = async () => { calData = await post('calendar', { month: calMonth }); drawCal() };
+    $('#cal').innerHTML = h;
+    $('#csel').textContent = lo && hi && hi > lo ? `${lo} → ${hi} (${Math.round((new Date(hi) - new Date(lo)) / 864e5)} ${t('night(s)')})` : ''
+  }
+  const loadCal = async () => { calData = await post('calendar', { month: calMonth }); syncRoomList(); drawCal() };
   $('#cprev').onclick = () => { const [y, m] = calMonth.split('-').map(Number); calMonth = ymd(new Date(y, m - 2, 1)).slice(0, 7); loadCal() };
   $('#cnext').onclick = () => { const [y, m] = calMonth.split('-').map(Number); calMonth = ymd(new Date(y, m, 1)).slice(0, 7); loadCal() };
   $('#croom').onchange = e => { calRoom = e.target.value; drawCal() };
-  $('#cal').onclick = e => {
-    const b = e.target.closest('[data-day]'); if (!b) return; const d = b.dataset.day;
-    if (!bf.ci.value || bf.co.value || d <= bf.ci.value) { bf.ci.value = d; bf.co.value = '' } else bf.co.value = d; bf.co.min = bf.ci.value; drawCal();
-    if (bf.ci.value && bf.co.value) bf.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  /* press on the check-in date, hold and drag to the check-out date, release */
+  const dayAt = (x, y) => { const el = document.elementFromPoint(x, y), b = el && el.closest('[data-day]'); return b && !b.disabled ? b.dataset.day : null };
+  const cal = $('#cal');
+  cal.addEventListener('pointerdown', e => {
+    if (e.button > 0) return; const b = e.target.closest('[data-day]'); if (!b || b.disabled) return;
+    e.preventDefault(); drag = { a: b.dataset.day, b: b.dataset.day }; cal.setPointerCapture(e.pointerId); drawCal()
+  });
+  cal.addEventListener('pointermove', e => { if (!drag) return; const d = dayAt(e.clientX, e.clientY); if (d && d != drag.b) { drag.b = d; drawCal() } });
+  const finish = e => {
+    if (!drag) return; const d = e.type == 'pointerup' ? dayAt(e.clientX, e.clientY) : null; if (d) drag.b = d;
+    let [lo, hi] = range(); drag = null;
+    if (e.type == 'pointercancel') { drawCal(); return }
+    if (hi == lo) hi = addDays(lo, 1);                /* a plain tap books one night */
+    bf.ci.value = lo; bf.co.value = hi; bf.co.min = lo; drawCal(); search(); bf.scrollIntoView({ behavior: 'smooth', block: 'center' })
   };
+  cal.addEventListener('pointerup', finish); cal.addEventListener('pointercancel', finish);
+  cal.addEventListener('dragstart', e => e.preventDefault());
   [bf.ci, bf.co].forEach(i => i.addEventListener('change', drawCal));
-  $('#lang').addEventListener('click', drawCal); loadCal();
+  $('#lang').addEventListener('click', () => { drawCal(); syncRoomList() }); loadCal();
+}
+
+/* ---- make reservation: room pre-selected, live summary and total ---- */
+const mr = $('#mr');
+if (mr) {
+  const rooms = JSON.parse(mr.dataset.rooms), qs = new URLSearchParams(location.search), sum = $('#sum'), btn = $('#reserveBtn');
+  const addDays = (d, n) => { const x = new Date(d + 'T00:00:00'); x.setDate(x.getDate() + n); return ymd(x) };
+  const byId = id => rooms.find(r => r.id == id);
+  rooms.forEach(r => mr.room.add(new Option(`${r.name} · ${peso(r.rate)}`, r.id)));
+  mr.room.value = byId(qs.get('room')) ? qs.get('room') : rooms[0]?.id;
+  /* defaults: tonight, 1 night, the room's standard capacity */
+  const today = ymd(new Date());
+  mr.ci.min = mr.co.min = today;
+  mr.ci.value = qs.get('ci') >= today ? qs.get('ci') : today;
+  mr.co.value = qs.get('co') > mr.ci.value ? qs.get('co') : addDays(mr.ci.value, 1);
+  const cap = () => byId(mr.room.value) || { base_cap: 2, max_cap: 40 };
+  mr.pax.value = qs.get('pax') || cap().base_cap; mr.pax.max = cap().max_cap; mr.co.min = addDays(mr.ci.value, 1);
+  mr.voucher.value = qs.get('voucher') ? (/^\d+$/.test(qs.get('voucher')) ? 'VCH-' + qs.get('voucher') : qs.get('voucher')) : '';
+  ready.then(() => { if (ME) ME.vouchers.forEach(v => mr.vsel.add(new Option(`${v.prize} (${v.code})`, v.code))); syncV(); refresh() });
+  const syncV = () => { const c = mr.voucher.value.trim().toUpperCase(); mr.vsel.value = [...mr.vsel.options].some(o => o.value == c) ? c : '' };
+  const row = (k, v, cls = '') => `<div class="srow ${cls}"><span data-t>${k}</span><b>${v}</b></div>`;
+  const fmt = d => new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  let seq = 0, ok = false;
+  async function refresh() {
+    const my = ++seq, d = Object.fromEntries(new FormData(mr)); delete d.vsel;
+    const [q, s] = await Promise.all([post('quote', d), post('search', d)]); if (my != seq) return;
+    /* rooms that are full for these dates are disabled in the dropdown */
+    if (!s.error) s.rooms.forEach(x => { const o = [...mr.room.options].find(o => o.value == x.room.id); if (o) { const base = `${x.room.name} · ${peso(x.room.rate)}`; o.disabled = !x.free && x.room.id != mr.room.value; o.textContent = x.free ? base : `${base} (${t('Unavailable')})` } });
+    const r = byId(mr.room.value), code = mr.voucher.value.trim();
+    ok = false; btn.disabled = true; $('#smsg').textContent = '';
+    if (code) { $('#vmsg').className = 'full ' + (q.voucher_ok ? 'ok' : 'err'); $('#vmsg').textContent = q.voucher_ok ? t('Voucher applied') + ': ' + (ME?.vouchers.find(v => v.code == code.toUpperCase() || v.id == code)?.prize || code) : t(q.error && /oucher/.test(q.error) ? q.error : 'Voucher not valid') } else { $('#vmsg').textContent = '' }
+    if (q.nights === undefined) { sum.innerHTML = row('Room', esc(r.name)); $('#smsg').textContent = t(q.error || 'Invalid dates'); return }
+    sum.innerHTML = row('Room', esc(r.name)) + row('Check-in', fmt(mr.ci.value) + ' · 2:00 PM') + row('Check-out', fmt(mr.co.value) + ' · 12:00 NN') + row('Guests', mr.pax.value) + row('night(s)', q.nights) +
+      row(r.type == 'hall' ? 'Hall' : 'Room', peso(q.sub)) + row('Extra guest fee', peso(q.extra)) + row('Discount', '−' + peso(q.disc)) + row('Total', peso(q.total), 'tot') + row('Downpayment', peso(q.down), 'mu');
+    const err = q.error && !(code && /oucher/.test(q.error)) ? q.error : (!q.free ? 'Not available for these dates' : '');
+    $('#smsg').textContent = t(err); ok = !err && !(code && !q.voucher_ok); btn.disabled = !ok; applyLang()
+  }
+  let tm; const live = () => { clearTimeout(tm); tm = setTimeout(refresh, 120) };
+  mr.room.addEventListener('change', () => { mr.pax.value = cap().base_cap; mr.pax.max = cap().max_cap; refresh() });
+  mr.ci.addEventListener('change', () => { mr.co.min = addDays(mr.ci.value, 1); if (mr.co.value <= mr.ci.value) mr.co.value = addDays(mr.ci.value, 1); refresh() });
+  mr.co.addEventListener('change', refresh); mr.pax.addEventListener('input', live);
+  mr.voucher.addEventListener('input', () => { syncV(); live() });                 /* total updates as the code is typed */
+  mr.vsel.addEventListener('change', () => { mr.voucher.value = mr.vsel.value; refresh() });
+  mr.addEventListener('submit', e => e.preventDefault());
+  $('#lang').addEventListener('click', refresh);
+  btn.onclick = () => { if (!ME) { location = 'login.php?next=' + encodeURIComponent('make-reservation.php' + location.search); return } $('#agree').checked = false; $('#tc').showModal() };
+  $('#cancelTc').onclick = () => $('#tc').close();
+  $('#confirm').onclick = async () => {
+    if (!$('#agree').checked) return alert(t('Please accept the Terms & Conditions'));
+    const d = Object.fromEntries(new FormData(mr)); delete d.vsel; const r = await post('book', { ...d, agree: 1 }); $('#tc').close();
+    if (r.error) { $('#smsg').textContent = r.error; refresh(); return }
+    $('#make').innerHTML = `<div class="card pay"><h3 data-t>Reservation received</h3><p><span data-t>Reference</span>: <b>${r.ref}</b></p><p><span data-t>Total</span> ${peso(r.total)} · <b><span data-t>Downpayment</span> ${peso(r.down)}</b></p><p class="warn" data-t>Please pay the downpayment and upload your proof within 24 hours, or the room will be released.</p>${payForm(r.ref, r.down)}</div>`; applyLang()
+  };
 }
 const qb = $('#qb');
 if (qb) { qb.ci.min = qb.co.min = ymd(new Date()); qb.ci.onchange = () => { qb.co.min = qb.ci.value } }

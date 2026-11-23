@@ -814,12 +814,19 @@ body:not(.admbody)>section:last-of-type {
     font: 600 1.3rem var(--hd)
 }
 
-.calbar select {
-    width: auto;
-    margin-left: auto
+.roompick {
+    max-width: 360px;
+    margin: .6rem 0
+}
+
+.roompick select {
+    width: 100%
 }
 
 .cal {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 4px;
@@ -884,6 +891,11 @@ body:not(.admbody)>section:last-of-type {
 .day.past {
     opacity: .4;
     cursor: default
+}
+
+.day.inr {
+    background: color-mix(in srgb, var(--pri) 22%, var(--sf));
+    border-color: var(--pri)
 }
 
 .day.pick {
@@ -1120,4 +1132,64 @@ body:not(.admbody)>section:last-of-type {
 #wmsg.ok {
     color: var(--pri);
     font-weight: 500
+}
+/* ---- make reservation ---- */
+.mrgrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 1fr);
+    gap: 1.5rem;
+    align-items: start
+}
+
+.mrform .full {
+    grid-column: 1/-1
+}
+
+.sumcard {
+    position: sticky;
+    top: 1rem
+}
+
+.sumcard h2 {
+    margin-top: 0;
+    font-size: 1.5rem
+}
+
+.srow {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .35rem 0;
+    border-bottom: 1px solid var(--ln)
+}
+
+.srow b {
+    text-align: right;
+    font-weight: 600
+}
+
+.srow.tot {
+    font-size: 1.2rem;
+    border-bottom: 0;
+    padding-top: .7rem
+}
+
+.srow.mu {
+    color: var(--mu);
+    border-bottom: 0
+}
+
+.sumcard .btn {
+    width: 100%;
+    margin-top: .8rem
+}
+
+@media(max-width:700px) {
+    .mrgrid {
+        grid-template-columns: 1fr
+    }
+
+    .sumcard {
+        position: static
+    }
 }

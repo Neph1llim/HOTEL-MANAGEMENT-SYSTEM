@@ -5,6 +5,8 @@ function P($k){return trim($_POST[$k]??'');}
 function guest($pdo){if(empty($_SESSION['gid']))return false;$s=$pdo->prepare('SELECT * FROM guests WHERE id=?');$s->execute([$_SESSION['gid']]);return $s->fetch();}
 function adm(){if(empty($_SESSION['admin']))j(['error'=>'Login required'],401);}
 function resById($pdo,$id,$lock=false){$s=$pdo->prepare('SELECT * FROM reservations WHERE id=?'.($lock?' FOR UPDATE':''));$s->execute([$id]);return $s->fetch();}
+/* a voucher can be given as its id or as its code (VCH-<id>); returns the id or null */
+function vid($v){$v=strtoupper(trim((string)$v));if($v==='')return null;if(preg_match('/^(?:VCH-?)?0*(\d+)$/',$v,$m))return (int)$m[1];return -1;}
 /* validates the room form fields shared by room_save and room_add; returns an error text or null */
 function roomErr($pdo,$id){
  $n=P('name');$rate=(int)P('rate');$b=(int)P('base_cap');$m=(int)P('max_cap');
@@ -18,10 +20,17 @@ try{switch($a){
 case 'search':
  $g=guest($pdo);$out=[];
  foreach($pdo->query('SELECT * FROM rooms WHERE active=1 ORDER BY id')->fetchAll() as $r){
-  $q=quote($pdo,$r['id'],P('ci'),P('co'),(int)P('pax'),P('voucher')?:null,$g['id']??null);
+  $q=quote($pdo,$r['id'],P('ci'),P('co'),(int)P('pax'),vid(P('voucher')),$g['id']??null);
   if(!empty($q['fatal']))j($q,422);
-  $q['room']=$r;$q['free']=!isset($q['error'])&&avail($pdo,$r['id'],P('ci'),P('co'));$out[]=$q;}
+  $q['room']=$r;$q['free']=avail($pdo,$r['id'],P('ci'),P('co'));$out[]=$q;}
  j(['rooms'=>$out]);
+case 'quote': /* live price for one room: used by the Make Reservation summary, updates as dates, guests or voucher change */
+ $g=guest($pdo);$vid=vid(P('voucher'));
+ $q=quote($pdo,(int)P('room'),P('ci'),P('co'),(int)P('pax'),$vid,$g['id']??null);
+ if($vid&&!$g)$q=['error'=>'Log in to use a voucher']+(isset($q['nights'])?$q:[]);
+ $q['free']=empty($q['fatal'])&&avail($pdo,(int)P('room'),P('ci'),P('co'));
+ $q['voucher_ok']=$vid&&!isset($q['error']);
+ j($q);
 case 'calendar': /* public: which nights are taken, for the availability calendar on the booking page */
  $m=preg_match('/^\d{4}-(0[1-9]|1[0-2])$/',P('month'))?P('month'):date('Y-m');
  $first="$m-01";$next=date('Y-m-d',strtotime("$first +1 month"));
@@ -33,9 +42,9 @@ case 'book':
  $pdo->beginTransaction();
  $pdo->prepare('SELECT id FROM rooms WHERE id=? FOR UPDATE')->execute([P('room')]);
  $gid=$g['id'];
- $q=quote($pdo,(int)P('room'),P('ci'),P('co'),(int)P('pax'),P('voucher')?:null,$gid);
+ $vid=vid(P('voucher'));$q=quote($pdo,(int)P('room'),P('ci'),P('co'),(int)P('pax'),$vid,$gid);
  if(isset($q['error'])||!avail($pdo,P('room'),P('ci'),P('co'))){$pdo->rollBack();j(['error'=>$q['error']??'Sorry, this room was just booked'],409);}
- $ref='BV'.strtoupper(bin2hex(random_bytes(3)));$vid=P('voucher')?:null;
+ $ref='BV'.strtoupper(bin2hex(random_bytes(3)));
  $pdo->prepare('INSERT INTO reservations(ref,guest_id,room_id,checkin,checkout,pax,extra_fee,discount,total,downpayment,voucher_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)')->execute([$ref,$gid,P('room'),P('ci'),P('co'),(int)P('pax'),$q['extra'],$q['disc'],$q['total'],$q['down'],$vid]);
  if($vid)$pdo->prepare('UPDATE vouchers SET status="used" WHERE id=?')->execute([$vid]);
  notify($pdo,$gid,"Reservation $ref received. Please pay the downpayment of ".peso($q['down'])." and upload your proof of payment within ".HOLD_HOURS." hours, or the room will be released.");
@@ -127,7 +136,7 @@ case 'notes_read':
  $pdo->prepare('UPDATE notifications SET is_read=1 WHERE guest_id=?')->execute([$g['id']]);j(['ok'=>1]);
 case 'lookup':
  $g=guest($pdo);if(!$g)j(['error'=>'Please log in'],401);
- $v=$pdo->prepare('SELECT id,prize FROM vouchers WHERE guest_id=? AND status="unused"');$v->execute([$g['id']]);
+ $v=$pdo->prepare('SELECT id,prize,CONCAT("VCH-",id) code FROM vouchers WHERE guest_id=? AND status="unused"');$v->execute([$g['id']]);
  $u=$pdo->prepare('SELECT COUNT(*) c FROM notifications WHERE guest_id=? AND is_read=0');$u->execute([$g['id']]);
  j(['guest'=>['name'=>$g['name'],'email'=>$g['email'],'phone'=>$g['phone'],'points'=>(int)$g['points'],'vip'=>(int)$g['vip']],'vouchers'=>$v->fetchAll(),'unread'=>(int)$u->fetch()['c']]);
 case 'spin':
