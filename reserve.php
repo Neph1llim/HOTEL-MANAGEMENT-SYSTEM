@@ -10,29 +10,19 @@
                 <option value="" data-t>None</option>
             </select></label><button class="btn" data-t>Check availability</button>
     </form>
+    <p class="mu" id="rhint" data-t>Results update automatically as you change the dates, guests or voucher. Fully booked rooms are hidden.</p>
     <div id="results" class="grid"></div>
 </section>
 <section id="availability" class="wrap">
-    <h2 data-t>Availability calendar</h2>
-    <p class="mu" data-t>Click a free date to set your check-in, then another date for check-out.</p>
+    <h2 data-t>Check availability</h2>
+    <div class="roompick"><label><span data-t>Room</span><select id="croom" aria-label="Room">
+                <option value="" data-t>All rooms (rooms free)</option>
+            </select></label></div>
+    <p class="mu" data-t>Press and hold on your check-in date, then drag to your check-out date and release.</p>
     <div class="calbar"><button type="button" class="btn ghost sm" id="cprev"
             aria-label="Previous month">&lsaquo;</button><b id="cmon"></b><button type="button" class="btn ghost sm"
-            id="cnext" aria-label="Next month">&rsaquo;</button><select id="croom" aria-label="Room">
-            <option value="" data-t>All rooms (rooms free)</option>
-        </select></div>
+            id="cnext" aria-label="Next month">&rsaquo;</button></div>
     <div id="cal" class="cal"></div>
+    <p class="mu" id="csel" aria-live="polite"></p>
 </section>
-<dialog id="tc">
-    <h3 data-t>Terms and conditions</h3>
-    <ol>
-        <li data-t>Downpayment: A downpayment secures your reservation. The balance is paid at check-in.</li>
-        <li data-t>Cancellation: Cancellations less than 3 days before check-in are non-refundable.</li>
-        <li data-t>Damage: Guests are billed for any damage or loss to hotel property, furniture or fixtures.</li>
-        <li data-t>No smoking: Smoking inside guest rooms is prohibited. Violations are fined ₱2,000.</li>
-        <li data-t>Quiet hours: Keep noise low after 10:00 PM around the accommodation areas.</li>
-    </ol>
-    <label class="chk"><input type="checkbox" id="agree"><span data-t>I agree to the terms and conditions</span></label>
-    <div class="row"><button class="btn" id="confirm" data-t>Confirm reservation</button><button class="btn ghost"
-            id="cancelTc" data-t>Cancel</button></div>
-</dialog>
 <?php include 'foot.php'; ?>
