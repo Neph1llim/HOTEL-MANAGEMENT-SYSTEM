@@ -2,7 +2,8 @@
 <section id="book" class="wrap">
     <h1 data-t>Book your stay</h1>
     <p class="mu"><span data-t>Check-in</span> 2:00 PM &middot; <span data-t>Check-out</span> 12:00 NN</p>
-    <form id="bf" class="form"><label><span data-t>Check-in</span><input type="date" name="ci" required></label><label><span data-t>Check-out</span><input type="date" name="co" required></label>
+    <form id="bf" class="form"><label><span data-t>Check-in</span><input type="date" name="ci"
+                required></label><label><span data-t>Check-out</span><input type="date" name="co" required></label>
         <label><span data-t>Guests</span><input type="number" name="pax" min="1" max="40" value="2" required></label>
 
         <label><span data-t>Voucher</span><select name="voucher">
@@ -10,6 +11,16 @@
             </select></label><button class="btn" data-t>Check availability</button>
     </form>
     <div id="results" class="grid"></div>
+</section>
+<section id="availability" class="wrap">
+    <h2 data-t>Availability calendar</h2>
+    <p class="mu" data-t>Click a free date to set your check-in, then another date for check-out.</p>
+    <div class="calbar"><button type="button" class="btn ghost sm" id="cprev"
+            aria-label="Previous month">&lsaquo;</button><b id="cmon"></b><button type="button" class="btn ghost sm"
+            id="cnext" aria-label="Next month">&rsaquo;</button><select id="croom" aria-label="Room">
+            <option value="" data-t>All rooms (rooms free)</option>
+        </select></div>
+    <div id="cal" class="cal"></div>
 </section>
 <dialog id="tc">
     <h3 data-t>Terms and conditions</h3>
@@ -21,6 +32,7 @@
         <li data-t>Quiet hours: Keep noise low after 10:00 PM around the accommodation areas.</li>
     </ol>
     <label class="chk"><input type="checkbox" id="agree"><span data-t>I agree to the terms and conditions</span></label>
-    <div class="row"><button class="btn" id="confirm" data-t>Confirm reservation</button><button class="btn ghost" id="cancelTc" data-t>Cancel</button></div>
+    <div class="row"><button class="btn" id="confirm" data-t>Confirm reservation</button><button class="btn ghost"
+            id="cancelTc" data-t>Cancel</button></div>
 </dialog>
 <?php include 'foot.php'; ?>

@@ -11,7 +11,9 @@ include 'head.php'; ?>
     <h2 id="vouchers" data-t>Your vouchers</h2>
     <ul id="vl" class="list"></ul>
     <h2 data-t>What you can win</h2>
-    <ul class="list"><?php foreach (PRIZES as $p) echo '<li>' . htmlspecialchars($p[0]) . '<b>' . ($p[3] / 100) . '%</b></li>'; ?></ul>
+    <ul class="list"><?php foreach (PRIZES as $p)
+        echo '<li>' . htmlspecialchars($p[0]) . '<b>' . ($p[3] / 100) . '%</b></li>'; ?>
+    </ul>
     <p class="mu" data-t>Free room vouchers cover the room rate for up to 2 nights. Extra guest fees still apply.</p>
 </section>
 <?php include 'foot.php'; ?>

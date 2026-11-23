@@ -11,7 +11,8 @@ CREATE TABLE
         type ENUM ('standard', 'family', 'hall'),
         rate INT,
         base_cap INT,
-        max_cap INT
+        max_cap INT,
+        active TINYINT DEFAULT 1
     );
 
 CREATE TABLE
@@ -53,6 +54,12 @@ CREATE TABLE
         voucher_id INT NULL,
         status ENUM ('pending', 'approved', 'cancelled', 'completed') DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        source ENUM ('online', 'walkin') DEFAULT 'online',
+        cancel_reason VARCHAR(12) NULL,
+        cancelled_at DATETIME NULL,
+        refund_status ENUM ('none', 'pending', 'refunded') DEFAULT 'none',
+        refund_amount DECIMAL(10, 2) DEFAULT 0,
+        refund_note VARCHAR(120) NULL,
         FOREIGN KEY (guest_id) REFERENCES guests (id),
         FOREIGN KEY (room_id) REFERENCES rooms (id)
     );
@@ -63,10 +70,23 @@ CREATE TABLE
         reservation_id INT,
         amount DECIMAL(10, 2),
         ref_no VARCHAR(40),
-        proof VARCHAR(60),
+        proof VARCHAR(60) NULL,
         status ENUM ('pending', 'verified', 'rejected') DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        kind ENUM ('down', 'balance') DEFAULT 'down',
+        method ENUM ('online', 'cash') DEFAULT 'online',
         FOREIGN KEY (reservation_id) REFERENCES reservations (id)
+    );
+
+CREATE TABLE
+    notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        guest_id INT,
+        msg VARCHAR(255),
+        is_read TINYINT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX (guest_id, is_read),
+        FOREIGN KEY (guest_id) REFERENCES guests (id)
     );
 
 CREATE TABLE
