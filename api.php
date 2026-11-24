@@ -8,12 +8,15 @@ function resById($pdo,$id,$lock=false){$s=$pdo->prepare('SELECT * FROM reservati
 /* a voucher can be given as its id or as its code (VCH-<id>); returns the id or null */
 function vid($v){$v=strtoupper(trim((string)$v));if($v==='')return null;if(preg_match('/^(?:VCH-?)?0*(\d+)$/',$v,$m))return (int)$m[1];return -1;}
 /* validates the room form fields shared by room_save and room_add; returns an error text or null */
-function roomErr($pdo,$id){
- $n=P('name');$rate=(int)P('rate');$b=(int)P('base_cap');$m=(int)P('max_cap');
+function roomErr($pdo,$id,$d=null,$skip=[]){
+ $d=$d??['name'=>P('name'),'rate'=>P('rate'),'base_cap'=>P('base_cap'),'max_cap'=>P('max_cap')];
+ $n=trim((string)($d['name']??''));$rate=(int)($d['rate']??0);$b=(int)($d['base_cap']??0);$m=(int)($d['max_cap']??0);
  if($n===''||strlen($n)>30)return 'Enter a room name (up to 30 characters)';
  if($rate<1)return 'The rate must be at least ₱1';
  if($b<1||$m<$b)return 'Capacities must be at least 1, and the maximum cannot be lower than the standard capacity';
- $s=$pdo->prepare('SELECT id FROM rooms WHERE LOWER(name)=LOWER(?) AND id<>?');$s->execute([$n,$id]);
+ /* rooms the caller is saving together with this one are checked against each other by the caller */
+ $ex=implode(',',array_map('intval',array_merge([$id],$skip)));
+ $s=$pdo->prepare("SELECT id FROM rooms WHERE LOWER(name)=LOWER(?) AND deleted=0 AND id NOT IN($ex)");$s->execute([$n]);
  return $s->fetch()?'Another room already has that name':null;
 }
 try{switch($a){
@@ -79,6 +82,25 @@ case 'pay_status':
   elseif($r['status']=='cancelled'&&$r['refund_status']!='refunded')$pdo->prepare('UPDATE reservations SET refund_status="pending",refund_amount=? WHERE id=?')->execute([$paid,$r['id']]);
  }elseif($r['status']=='pending')
   notify($pdo,$r['guest_id'],"Your payment proof for {$r['ref']} was rejected. Please upload a clear proof of payment within ".HOLD_HOURS." hours, or the room will be released.");
+ $pdo->commit();j(['ok'=>1]);
+case 'pay_revert': /* put a verified or rejected payment back to pending so it can be reviewed again */
+ adm();
+ $pdo->beginTransaction();
+ $s=$pdo->prepare('SELECT * FROM payments WHERE id=? FOR UPDATE');$s->execute([P('id')]);$p=$s->fetch();
+ if(!$p||!in_array($p['status'],['verified','rejected'])){$pdo->rollBack();j(['error'=>'Only a verified or rejected payment can be set back to pending'],422);}
+ $r=resById($pdo,$p['reservation_id'],true);
+ if($r['status']=='completed'){$pdo->rollBack();j(['error'=>'This reservation is already completed, so its payments can no longer be changed'],422);}
+ if($r['refund_status']=='refunded'){$pdo->rollBack();j(['error'=>'A refund was already recorded for this reservation, so its payments can no longer be changed'],422);}
+ $pdo->prepare('UPDATE payments SET status="pending" WHERE id=?')->execute([$p['id']]);
+ if($p['status']=='verified'){
+  $paid=paidSum($pdo,$r['id']); /* what is still verified without this payment */
+  if($r['status']=='approved'&&$paid<=0)$pdo->prepare('UPDATE reservations SET status="pending" WHERE id=?')->execute([$r['id']]); /* it was approved only because of this payment */
+  elseif($r['status']=='cancelled'&&$r['refund_status']=='pending'){
+   if($paid>0)$pdo->prepare('UPDATE reservations SET refund_amount=LEAST(refund_amount,?) WHERE id=?')->execute([$paid,$r['id']]);
+   else $pdo->prepare('UPDATE reservations SET refund_status="none",refund_amount=0 WHERE id=?')->execute([$r['id']]);
+  }
+ }
+ notify($pdo,$r['guest_id'],"Your payment for reservation {$r['ref']} is back under review. The hotel will verify it shortly.");
  $pdo->commit();j(['ok'=>1]);
 case 'register':
  $pw=$_POST['pass']??'';
@@ -158,19 +180,58 @@ case 'login':
 case 'logout':session_destroy();j(['ok'=>1]);
 case 'dash':
  adm();
+ /* Overview is scoped to one calendar month (default: the current one, never more than 1 month ahead).
+    Reservations belong to the month they were booked in; payments to the month they were submitted/received in.
+    Nothing is deleted when a month ends: the Payments and Reservations tabs always list everything. */
+ $nowM=date('Y-m');$maxM=date('Y-m',strtotime(date('Y-m-01').' +1 month'));
+ $month=preg_match('/^\d{4}-(0[1-9]|1[0-2])$/',P('month'))?P('month'):$nowM;
+ if($month>$maxM)$month=$maxM;
+ $ms="$month-01";$me=date('Y-m-d',strtotime("$ms +1 month"));
  $paidSub='(SELECT COALESCE(SUM(p.amount),0) FROM payments p WHERE p.reservation_id=r.id AND p.status="verified")';
- $st=$pdo->query('SELECT SUM(status="pending") pending,SUM(status="approved") approved,SUM(status="completed") completed,SUM(status="cancelled") cancelled,COUNT(*) bookings,
-  SUM(refund_status="pending") refunds_n,COALESCE(SUM(IF(refund_status="pending",refund_amount,0)),0) refunds_amt,
-  COALESCE(SUM(IF(refund_status="refunded",refund_amount,0)),0) refunded FROM reservations')->fetch();
- /* revenue = money actually received (verified payments, downpayments and balances) minus refunds already paid out */
- $st['revenue']=(float)$pdo->query('SELECT COALESCE(SUM(amount),0) s FROM payments WHERE status="verified"')->fetch()['s']-(float)$st['refunded'];
- $st['balance_due']=(float)$pdo->query("SELECT COALESCE(SUM(CASE WHEN r.total>$paidSub THEN r.total-$paidSub ELSE 0 END),0) s FROM reservations r WHERE r.status IN('approved','completed')")->fetch()['s'];
- $bt=$pdo->query('SELECT m.type,COUNT(*) n,SUM(r.total) rev FROM reservations r JOIN rooms m ON m.id=r.room_id WHERE r.status IN("approved","completed") GROUP BY m.type')->fetchAll();
- $rooms=$pdo->query('SELECT m.*,(SELECT COUNT(*) FROM reservations r WHERE r.room_id=m.id AND r.status="approved" AND r.checkin<=CURDATE() AND r.checkout>CURDATE()) occ,(SELECT COUNT(*) FROM reservations r WHERE r.room_id=m.id AND r.status IN("pending","approved") AND r.checkout>CURDATE()) upcoming FROM rooms m ORDER BY m.id')->fetchAll();
- $rs=$pdo->query("SELECT r.id,r.ref,r.checkin,r.checkout,r.pax,r.total,r.downpayment,r.status,r.source,r.cancel_reason,r.refund_status,r.refund_amount,r.refund_note,g.name guest,g.email,g.phone,m.name room,$paidSub paid FROM reservations r JOIN guests g ON g.id=r.guest_id JOIN rooms m ON m.id=r.room_id ORDER BY r.id DESC LIMIT 200")->fetchAll();
+ $q=$pdo->prepare('SELECT SUM(status="pending") pending,SUM(status="approved") approved,SUM(status="completed") completed,SUM(status="cancelled") cancelled,COUNT(*) bookings,
+  SUM(refund_status="pending") refunds_n,COALESCE(SUM(IF(refund_status="pending",refund_amount,0)),0) refunds_amt FROM reservations WHERE created_at>=? AND created_at<?');
+ $q->execute([$ms,$me]);$st=$q->fetch();
+ /* revenue = money actually received this month (verified payments) minus refunds paid out this month */
+ $q=$pdo->prepare('SELECT COALESCE(SUM(amount),0) s FROM payments WHERE status="verified" AND created_at>=? AND created_at<?');$q->execute([$ms,$me]);$recv=(float)$q->fetch()['s'];
+ $q=$pdo->prepare('SELECT COALESCE(SUM(refund_amount),0) s FROM reservations WHERE refund_status="refunded" AND COALESCE(cancelled_at,created_at)>=? AND COALESCE(cancelled_at,created_at)<?');$q->execute([$ms,$me]);
+ $st['revenue']=$recv-(float)$q->fetch()['s'];
+ $q=$pdo->prepare('SELECT COUNT(*) c FROM payments WHERE status="pending" AND created_at>=? AND created_at<?');$q->execute([$ms,$me]);$st['pays_pending']=(int)$q->fetch()['c'];
+ $q=$pdo->prepare("SELECT COALESCE(SUM(CASE WHEN r.total>$paidSub THEN r.total-$paidSub ELSE 0 END),0) s FROM reservations r WHERE r.status IN('approved','completed') AND r.created_at>=? AND r.created_at<?");$q->execute([$ms,$me]);
+ $st['balance_due']=(float)$q->fetch()['s'];
+ $q=$pdo->prepare('SELECT m.type,COUNT(*) n,SUM(r.total) rev FROM reservations r JOIN rooms m ON m.id=r.room_id WHERE r.status IN("approved","completed") AND r.created_at>=? AND r.created_at<? GROUP BY m.type');$q->execute([$ms,$me]);$bt=$q->fetchAll();
+ $rooms=$pdo->query('SELECT m.*,(SELECT COUNT(*) FROM reservations r WHERE r.room_id=m.id AND r.status="approved" AND r.checkin<=CURDATE() AND r.checkout>CURDATE()) occ,(SELECT COUNT(*) FROM reservations r WHERE r.room_id=m.id AND r.status IN("pending","approved") AND r.checkout>CURDATE()) upcoming FROM rooms m WHERE m.deleted=0 ORDER BY m.id')->fetchAll();
+ /* reservations: full list for the Reservations tab; Overview gets only this month's items that still need action
+    (pending, approved, or cancelled with a refund still to pay out) */
+ $sel="SELECT r.id,r.ref,r.checkin,r.checkout,r.pax,r.total,r.downpayment,r.status,r.source,r.cancel_reason,r.refund_status,r.refund_amount,r.refund_note,g.name guest,g.email,g.phone,m.name room,$paidSub paid FROM reservations r JOIN guests g ON g.id=r.guest_id JOIN rooms m ON m.id=r.room_id";
+ /* search box on the Payments / Reservations pages: name, email, contact no. or reference no. */
+ $qs=trim(P('q'));$lk='%'.addcslashes($qs,'%_\\').'%';
+ $dig=preg_match('/^[\d\s\-+]+$/',$qs)?preg_replace('/\D/','',$qs):''; /* phone typed with spaces, dashes or +63 */
+ $ph=strlen(preg_replace('/\D/','',$qs))>=3; /* contact numbers are searched from 3 digits, so "2" does not match every guest whose number happens to contain a 2 */
+ $phoneSql='REPLACE(REPLACE(REPLACE(g.phone," ",""),"-",""),"+","")';
+ $rw='';$rp=[];
+ if($qs!==''){$rw=' WHERE (g.name LIKE ? OR g.email LIKE ? OR r.ref LIKE ?'.($ph?' OR g.phone LIKE ?':'').($ph&&$dig!==''?" OR $phoneSql LIKE ?":'').')';$rp=[$lk,$lk,$lk];if($ph)$rp[]=$lk;if($ph&&$dig!=='')$rp[]='%'.$dig.'%';}
+ $sq=$pdo->prepare("$sel$rw ORDER BY r.id DESC LIMIT 500");$sq->execute($rp);$rs=$sq->fetchAll();
+ $q=$pdo->prepare("$sel WHERE r.created_at>=? AND r.created_at<? AND (r.status IN('pending','approved') OR (r.status='cancelled' AND r.refund_status='pending')) ORDER BY r.checkin,r.id");$q->execute([$ms,$me]);$ovr=$q->fetchAll();
  foreach($rs as &$x)$x['balance']=in_array($x['status'],['approved','completed'])?balanceDue($x,$x['paid']):0;unset($x);
- $pays=$pdo->query('SELECT p.id,p.ref_no,p.amount,p.status,p.kind,p.method,p.created_at,r.ref,r.downpayment,g.name guest FROM payments p JOIN reservations r ON r.id=p.reservation_id JOIN guests g ON g.id=r.guest_id ORDER BY p.status="pending" DESC,p.id DESC LIMIT 100')->fetchAll();
- j(['stats'=>$st,'byType'=>$bt,'rooms'=>$rooms,'res'=>$rs,'pays'=>$pays]);
+ foreach($ovr as &$x)$x['balance']=in_array($x['status'],['approved','completed'])?balanceDue($x,$x['paid']):0;unset($x);
+ /* payments: full list for the Payments tab; Overview gets only this month's payments still waiting for review */
+ $psel='SELECT p.id,p.ref_no,p.amount,p.status,p.kind,p.method,p.created_at,r.ref,r.downpayment,g.name guest,g.email,g.phone FROM payments p JOIN reservations r ON r.id=p.reservation_id JOIN guests g ON g.id=r.guest_id';
+ $pw='';$pp=[];
+ if($qs!==''){$pw=' WHERE (g.name LIKE ? OR g.email LIKE ? OR r.ref LIKE ? OR p.ref_no LIKE ?'.($ph?' OR g.phone LIKE ?':'').($ph&&$dig!==''?" OR $phoneSql LIKE ?":'').')';$pp=[$lk,$lk,$lk,$lk];if($ph)$pp[]=$lk;if($ph&&$dig!=='')$pp[]='%'.$dig.'%';}
+ $sq=$pdo->prepare("$psel$pw ORDER BY p.status=\"pending\" DESC,p.id DESC LIMIT 500");$sq->execute($pp);$pays=$sq->fetchAll();
+ $q=$pdo->prepare("$psel WHERE p.status='pending' AND p.created_at>=? AND p.created_at<? ORDER BY p.id DESC");$q->execute([$ms,$me]);$ovp=$q->fetchAll();
+ /* revenue per calendar month for the selected year and the year before (Overview analytics) */
+ $yr=(int)substr($month,0,4);
+ $series=function($y)use($pdo){
+  $a=array_fill(0,12,0.0);
+  $q=$pdo->prepare('SELECT MONTH(created_at) m,COALESCE(SUM(amount),0) s FROM payments WHERE status="verified" AND created_at>=? AND created_at<? GROUP BY MONTH(created_at)');
+  $q->execute(["$y-01-01",($y+1).'-01-01']);
+  foreach($q->fetchAll() as $x)$a[(int)$x['m']-1]+=(float)$x['s'];
+  $q=$pdo->prepare('SELECT MONTH(COALESCE(cancelled_at,created_at)) m,COALESCE(SUM(refund_amount),0) s FROM reservations WHERE refund_status="refunded" AND COALESCE(cancelled_at,created_at)>=? AND COALESCE(cancelled_at,created_at)<? GROUP BY MONTH(COALESCE(cancelled_at,created_at))');
+  $q->execute(["$y-01-01",($y+1).'-01-01']);
+  foreach($q->fetchAll() as $x)$a[(int)$x['m']-1]-=(float)$x['s'];
+  return $a;};
+ j(['stats'=>$st,'byType'=>$bt,'rooms'=>$rooms,'res'=>$rs,'pays'=>$pays,'ov'=>['res'=>$ovr,'pays'=>$ovp],'month'=>$month,'now_month'=>$nowM,'max_month'=>$maxM,'yearly'=>['year'=>$yr,'cur'=>$series($yr),'prev'=>$series($yr-1)]]);
 case 'status': /* complete or cancel a reservation */
  adm();$n=P('s');
  $pdo->beginTransaction();
@@ -178,6 +239,7 @@ case 'status': /* complete or cancel a reservation */
  if(!$r||!in_array($n,['completed','cancelled'])){$pdo->rollBack();j(['error'=>'Invalid change'],422);}
  if($n=='completed'){
   if($r['status']!='approved'){$pdo->rollBack();j(['error'=>'Only approved reservations can be completed'],422);}
+  if(balanceDue($r,paidSum($pdo,$r['id']))>0){$pdo->rollBack();j(['error'=>'Collect the remaining balance before completing this reservation'],422);}
   completeStay($pdo,$r['id']);
  }else{
   if(!in_array($r['status'],['pending','approved'])){$pdo->rollBack();j(['error'=>'This reservation can no longer be cancelled'],422);}
@@ -206,7 +268,7 @@ case 'refund': /* record a refund for a cancelled reservation */
  $pdo->commit();j(['ok'=>1]);
 case 'room_save':
  adm();
- $r=$pdo->prepare('SELECT id FROM rooms WHERE id=?');$r->execute([P('id')]);if(!$r->fetch())j(['error'=>'Room not found'],404);
+ $r=$pdo->prepare('SELECT id FROM rooms WHERE id=? AND deleted=0');$r->execute([P('id')]);if(!$r->fetch())j(['error'=>'Room not found'],404);
  if($e=roomErr($pdo,P('id')))j(['error'=>$e],422);
  $pdo->prepare('UPDATE rooms SET name=?,rate=?,base_cap=?,max_cap=?,active=? WHERE id=?')->execute([P('name'),(int)P('rate'),(int)P('base_cap'),(int)P('max_cap'),P('active')?1:0,P('id')]);
  j(['ok'=>1]);
@@ -216,6 +278,35 @@ case 'room_add':
  if($e=roomErr($pdo,0))j(['error'=>$e],422);
  $pdo->prepare('INSERT INTO rooms(name,type,rate,base_cap,max_cap,active) VALUES(?,?,?,?,?,1)')->execute([P('name'),P('type'),(int)P('rate'),(int)P('base_cap'),(int)P('max_cap')]);
  j(['ok'=>1]);
+case 'rooms_save': /* "Save All Changes": every edited row of the Rooms & Rates table in one go. All rows are valid or nothing is saved. */
+ adm();
+ $rows=json_decode($_POST['rows']??'[]',true);
+ if(!is_array($rows)||!$rows)j(['error'=>'There are no changes to save'],422);
+ $ids=array_map('intval',array_column($rows,'id'));
+ $pdo->beginTransaction();
+ $seen=[];
+ foreach($rows as $d){
+  $id=(int)($d['id']??0);
+  $s=$pdo->prepare('SELECT id FROM rooms WHERE id=? AND deleted=0 FOR UPDATE');$s->execute([$id]);
+  if(!$s->fetch()){$pdo->rollBack();j(['error'=>'A room in the table no longer exists. Reload the page and try again.'],404);}
+  $nm=trim((string)($d['name']??''));
+  if($e=roomErr($pdo,$id,$d,$ids)){$pdo->rollBack();j(['error'=>($nm!==''?"$nm: ":'').$e],422);}
+  if(isset($seen[strtolower($nm)])){$pdo->rollBack();j(['error'=>"Two rooms cannot have the same name ($nm)"],422);}
+  $seen[strtolower($nm)]=1;
+  $pdo->prepare('UPDATE rooms SET name=?,rate=?,base_cap=?,max_cap=?,active=? WHERE id=?')->execute([$nm,(int)$d['rate'],(int)$d['base_cap'],(int)$d['max_cap'],!empty($d['active'])?1:0,$id]);
+ }
+ $pdo->commit();j(['ok'=>1,'n'=>count($rows)]);
+case 'room_delete': /* remove a room. Booking history is kept: a room with past bookings is hidden instead of erased. */
+ adm();
+ $pdo->beginTransaction();
+ $s=$pdo->prepare('SELECT id FROM rooms WHERE id=? AND deleted=0 FOR UPDATE');$s->execute([P('id')]);$m=$s->fetch();
+ if(!$m){$pdo->rollBack();j(['error'=>'Room not found'],404);}
+ $s=$pdo->prepare('SELECT COUNT(*) c FROM reservations WHERE room_id=? AND status IN("pending","approved") AND checkout>CURDATE()');$s->execute([$m['id']]);
+ if($s->fetch()['c']){$pdo->rollBack();j(['error'=>'This room still has pending or upcoming bookings. Cancel or complete them first, then delete the room.'],422);}
+ $s=$pdo->prepare('SELECT COUNT(*) c FROM reservations WHERE room_id=?');$s->execute([$m['id']]);
+ if($s->fetch()['c'])$pdo->prepare('UPDATE rooms SET deleted=1,active=0 WHERE id=?')->execute([$m['id']]);
+ else $pdo->prepare('DELETE FROM rooms WHERE id=?')->execute([$m['id']]);
+ $pdo->commit();j(['ok'=>1]);
 case 'wk_quote': /* live price preview for the walk-in form */
  adm();
  $g=null;if(P('email')){$s=$pdo->prepare('SELECT id FROM guests WHERE email=?');$s->execute([P('email')]);$g=$s->fetch()['id']??null;}

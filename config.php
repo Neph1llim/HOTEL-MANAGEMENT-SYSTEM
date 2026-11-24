@@ -2,6 +2,9 @@
 session_start();
 date_default_timezone_set('Asia/Manila');
 $pdo = new PDO('mysql:host=localhost;dbname=bellavista;charset=utf8mb4', 'root', '', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::MYSQL_ATTR_INIT_COMMAND => "SET time_zone='+08:00'"]);
+/* rooms can be deleted from Admin > Rooms & Rates; a room with booking history is hidden (deleted=1) instead of erased. Adds the column on databases made before this feature. */
+if (!$pdo->query("SHOW COLUMNS FROM rooms LIKE 'deleted'")->fetch())
+   $pdo->exec('ALTER TABLE rooms ADD deleted TINYINT DEFAULT 0');
 if (!$pdo->query('SELECT COUNT(*) c FROM admins')->fetch()['c'])
    $pdo->prepare('INSERT INTO admins(username,pass) VALUES("admin",?)')->execute([password_hash('admin123', PASSWORD_DEFAULT)]);
 // [label, kind, percent, weight out of 10000] - same order as the wheel in assets/app.js
