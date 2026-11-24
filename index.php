@@ -8,18 +8,24 @@ foreach ($pdo->query('SELECT type,MIN(rate) r FROM rooms WHERE active=1 GROUP BY
     <p data-t>A quiet eco-chic retreat for families, travelers and celebrations.</p><a class="btn" href="reserve.php"
         data-t>Book now</a>
 </section>
-<section id="about" class="wrap two">
-    <div>
-        <h2 data-t>About us</h2>
-        <p data-t>Bella Vista Hotel & Events Place is a premier eco-chic boutique hotel and events destination at the
-            scenic foothills of the mountains. It offers a tranquil, elegant and exclusive retreat for families,
-            tourists and corporate clients, away from the hustle and bustle of the city.</p>
+<section id="about-us" class="creamband">
+    <div class="wrap altblock">
+        <div class="alttext">
+            <p class="eyebrow" data-t>About us</p>
+            <h2 data-t>A quiet retreat at the foot of the mountains</h2>
+            <p data-t>Bella Vista Hotel & Events Place is a premier eco-chic boutique hotel and events destination at the scenic foothills of the mountains. It offers a tranquil, elegant and exclusive retreat for families, tourists and corporate clients, away from the hustle and bustle of the city.</p>
+            <a class="btn ghost sm" href="rooms.php" data-t>See our rooms</a>
+        </div>
+        <div class="photo" role="img" aria-label="Bella Vista Hotel" style="background-image:url(assets/img/about.jpg),url(assets/img/g1.jpg),linear-gradient(135deg,var(--pri),var(--acc))"></div>
     </div>
-    <div>
-        <h2 data-t>Our history</h2>
-        <p data-t>Established in 2021, Bella Vista began as an exclusive family-owned resthouse. Growing demand for
-            intimate celebrations and restful getaways turned it into a boutique hotel and events venue, known for warm
-            Filipino hospitality, picturesque views and top-tier service.</p>
+    <div id="history" class="wrap altblock rev">
+        <div class="alttext">
+            <p class="eyebrow" data-t>Our history</p>
+            <h2 data-t>From family resthouse to boutique hotel</h2>
+            <p data-t>Established in 2021, Bella Vista began as an exclusive family-owned resthouse. Growing demand for intimate celebrations and restful getaways turned it into a boutique hotel and events venue, known for warm Filipino hospitality, picturesque views and top-tier service.</p>
+            <a class="btn ghost sm" href="reserve.php" data-t>Book your stay</a>
+        </div>
+        <div class="photo" role="img" aria-label="Bella Vista through the years" style="background-image:url(assets/img/history.jpg),url(assets/img/g2.jpg),linear-gradient(135deg,var(--acc),var(--pri))"></div>
     </div>
 </section>
 <section id="rooms" class="wrap">
@@ -53,15 +59,8 @@ foreach ($pdo->query('SELECT type,MIN(rate) r FROM rooms WHERE active=1 GROUP BY
             echo "<div style=\"background-image:url(assets/img/g$i.jpg),linear-gradient(135deg,var(--pri),var(--acc))\"></div>"; ?>
     </div>
 </section>
-<section id="terms" class="wrap">
-    <h2 data-t>Terms and conditions</h2>
-    <ol class="mu">
-        <li data-t>Downpayment: A downpayment secures your reservation. The balance is paid at check-in.</li>
-        <li data-t>Cancellation: Cancellations less than 3 days before check-in are non-refundable.</li>
-        <li data-t>Damage: Guests are billed for any damage or loss to hotel property, furniture or fixtures.</li>
-        <li data-t>No smoking: Smoking inside guest rooms is prohibited. Violations are fined ₱2,000.</li>
-        <li data-t>Quiet hours: Keep noise low after 10:00 PM around the accommodation areas.</li>
-    </ol>
+<section class="wrap">
+    <p class="mu"><span data-t>Downpayment, cancellation and house rules are in our</span> <a href="policies.php" data-t>Policies</a>.</p>
 </section>
 <section id="book" class="wrap">
     <h2 data-t>Book your stay</h2>
