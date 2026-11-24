@@ -106,3 +106,15 @@ WHERE NOT EXISTS (SELECT 1 FROM rooms);
 -- Default admin: admin / admin123 (change the password after first login)
 INSERT IGNORE INTO admins (username, pass)
 VALUES ('admin', '$2y$10$nFrAvGcMwpHIGMI1Y2q35uEA1O2V5qjkKwI.M5WU8WofYmhoxZaTC');
+
+-- Daily minigames: one claim per guest, per game, per calendar day (max 5 points each)
+CREATE TABLE IF NOT EXISTS minigame_claims (
+    guest_id INT NOT NULL,
+    game ENUM ('toss', 'catch') NOT NULL,
+    day DATE NOT NULL,
+    points TINYINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (guest_id, game, day),
+    CHECK (points BETWEEN 1 AND 5),
+    FOREIGN KEY (guest_id) REFERENCES guests (id)
+);

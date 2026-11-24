@@ -1,13 +1,19 @@
 -- Bella Vista DEMO DATA. phpMyAdmin > bellavista > Import > this file > Go.
 -- Only adds rows, so run it on a freshly imported (or cleared) database. To restart the demo later, import reset-demo.sql.
 -- Demo logins: admin / admin123  |  maria@demo.com, juan@demo.com, carlo@demo.com, ana@demo.com, liza@demo.com / guest123
+-- Needs the minigame_claims table first (it is in the updated database.sql, or run minigame_claims.sql).
+-- MINIGAME DEMO (Rewards page > Daily minigames, 1 claim per game per day, max 5 points each):
+--   juan@demo.com   95 points, nothing claimed today: play and claim a game and he reaches 100, so the Spin button unlocks.
+--   maria@demo.com  128 points, claimed both games YESTERDAY only: both games are playable today (yesterday does not count).
+--   carlo@demo.com  79 points, Golden Token Toss already claimed today (+4): shows the "Claimed today" lock; Resort Harvest Catch is still open.
+--   ana@demo.com / liza@demo.com  no completed stay: both games show "Complete a stay to earn minigame points."
 USE bellavista;
 
 -- Guests (password for every demo guest: guest123). Pedro Ramos is a walk-in guest with no online account.
 INSERT INTO guests (id, name, email, phone, pass, points, vip) VALUES
-    (1, 'Maria Santos', 'maria@demo.com', '09171110001', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 120, 0),
+    (1, 'Maria Santos', 'maria@demo.com', '09171110001', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 128, 0),
     (2, 'Juan Dela Cruz', 'juan@demo.com', '09171110002', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 95, 0),
-    (3, 'Carlo Mendoza', 'carlo@demo.com', '09171110003', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 75, 1),
+    (3, 'Carlo Mendoza', 'carlo@demo.com', '09171110003', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 79, 1),
     (4, 'Ana Reyes', 'ana@demo.com', '09171110004', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 0, 0),
     (5, 'Liza Bautista', 'liza@demo.com', '09171110005', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 0, 0),
     (6, 'Pedro Ramos', NULL, '09171110006', NULL, 0, 0);
@@ -16,6 +22,12 @@ INSERT INTO guests (id, name, email, phone, pass, points, vip) VALUES
 INSERT INTO vouchers (id, guest_id, prize, kind, pct, status, created_at) VALUES
     (1, 1, '50% discount voucher', 'pct', 50, 'unused', DATE_SUB(NOW(), INTERVAL 40 DAY)),
     (2, 2, '75% discount voucher + meal stubs', 'pct', 75, 'used', DATE_SUB(NOW(), INTERVAL 30 DAY));
+
+-- Minigame claims (points are already included in each guest's balance above)
+INSERT INTO minigame_claims (guest_id, game, day, points, created_at) VALUES
+    (1, 'toss', DATE_SUB(CURDATE(), INTERVAL 1 DAY), 5, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+    (1, 'catch', DATE_SUB(CURDATE(), INTERVAL 1 DAY), 3, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+    (3, 'toss', CURDATE(), 4, NOW());
 
 -- Reservations in every status. All dates are relative to the day you import this file.
 --  BVD0001-0005 completed (points already awarded)

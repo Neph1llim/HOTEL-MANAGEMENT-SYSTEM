@@ -1,19 +1,43 @@
 -- Bella Vista RESET DEMO. One import restores the whole demo: phpMyAdmin > bellavista > Import > this file > Go.
--- WARNING: this DELETES every guest, reservation, payment, voucher and notification, restores the 7 default rooms and rates,
+-- WARNING: this DELETES every guest, reservation, payment, voucher, minigame claim and notification, restores the 7 default rooms and rates,
 -- resets the admin login to admin / admin123, and then loads the sample data again. Do not run it on real data.
 -- Demo logins: admin / admin123  |  maria@demo.com, juan@demo.com, carlo@demo.com, ana@demo.com, liza@demo.com / guest123
+-- MINIGAME DEMO (Rewards page > Daily minigames, 1 claim per game per day, max 5 points each):
+--   juan@demo.com   95 points, nothing claimed today: play and claim a game and he reaches 100, so the Spin button unlocks.
+--   maria@demo.com  128 points, claimed both games YESTERDAY only: both games are playable today.
+--   carlo@demo.com  79 points, Golden Token Toss already claimed today (+4): shows "Claimed today"; Resort Harvest Catch is still open.
+--   ana@demo.com / liza@demo.com  no completed stay: both games show "Complete a stay to earn minigame points."
 -- (This file = clear-all-data.sql + demo-data.sql. Keep all three in sync if you change one.)
 USE bellavista;
 
-SET FOREIGN_KEY_CHECKS = 0;
-TRUNCATE TABLE notifications;
-TRUNCATE TABLE payments;
-TRUNCATE TABLE reservations;
-TRUNCATE TABLE vouchers;
-TRUNCATE TABLE guests;
-TRUNCATE TABLE rooms;
-TRUNCATE TABLE admins;
-SET FOREIGN_KEY_CHECKS = 1;
+-- Minigame table (created here too, so this script works even if it was not created yet)
+CREATE TABLE IF NOT EXISTS minigame_claims (
+    guest_id INT NOT NULL,
+    game ENUM ('toss', 'catch') NOT NULL,
+    day DATE NOT NULL,
+    points TINYINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (guest_id, game, day),
+    CHECK (points BETWEEN 1 AND 5),
+    FOREIGN KEY (guest_id) REFERENCES guests (id)
+);
+
+-- Clear child tables first so no foreign key blocks the deletes (works with or without FOREIGN_KEY_CHECKS)
+DELETE FROM minigame_claims;
+DELETE FROM notifications;
+DELETE FROM payments;
+DELETE FROM reservations;
+DELETE FROM vouchers;
+DELETE FROM guests;
+DELETE FROM rooms;
+DELETE FROM admins;
+ALTER TABLE reservations AUTO_INCREMENT = 1;
+ALTER TABLE notifications AUTO_INCREMENT = 1;
+ALTER TABLE payments AUTO_INCREMENT = 1;
+ALTER TABLE vouchers AUTO_INCREMENT = 1;
+ALTER TABLE guests AUTO_INCREMENT = 1;
+ALTER TABLE rooms AUTO_INCREMENT = 1;
+ALTER TABLE admins AUTO_INCREMENT = 1;
 
 INSERT INTO rooms (id, name, type, rate, base_cap, max_cap, active) VALUES
     (1, 'Room A', 'standard', 3500, 2, 3, 1),
@@ -29,9 +53,9 @@ INSERT INTO admins (id, username, pass) VALUES
 
 -- Guests (password for every demo guest: guest123). Pedro Ramos is a walk-in guest with no online account.
 INSERT INTO guests (id, name, email, phone, pass, points, vip) VALUES
-    (1, 'Maria Santos', 'maria@demo.com', '09171110001', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 120, 0),
+    (1, 'Maria Santos', 'maria@demo.com', '09171110001', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 128, 0),
     (2, 'Juan Dela Cruz', 'juan@demo.com', '09171110002', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 95, 0),
-    (3, 'Carlo Mendoza', 'carlo@demo.com', '09171110003', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 75, 1),
+    (3, 'Carlo Mendoza', 'carlo@demo.com', '09171110003', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 79, 1),
     (4, 'Ana Reyes', 'ana@demo.com', '09171110004', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 0, 0),
     (5, 'Liza Bautista', 'liza@demo.com', '09171110005', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 0, 0),
     (6, 'Pedro Ramos', NULL, '09171110006', NULL, 0, 0);
@@ -40,6 +64,12 @@ INSERT INTO guests (id, name, email, phone, pass, points, vip) VALUES
 INSERT INTO vouchers (id, guest_id, prize, kind, pct, status, created_at) VALUES
     (1, 1, '50% discount voucher', 'pct', 50, 'unused', DATE_SUB(NOW(), INTERVAL 40 DAY)),
     (2, 2, '75% discount voucher + meal stubs', 'pct', 75, 'used', DATE_SUB(NOW(), INTERVAL 30 DAY));
+
+-- Minigame claims (points are already included in each guest's balance above)
+INSERT INTO minigame_claims (guest_id, game, day, points, created_at) VALUES
+    (1, 'toss', DATE_SUB(CURDATE(), INTERVAL 1 DAY), 5, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+    (1, 'catch', DATE_SUB(CURDATE(), INTERVAL 1 DAY), 3, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+    (3, 'toss', CURDATE(), 4, NOW());
 
 -- Reservations in every status. All dates are relative to the day you import this file.
 --  BVD0001-0005 completed (points already awarded)
