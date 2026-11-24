@@ -40,7 +40,7 @@ if ($('#lang')) $('#lang').onclick = () => { lang = lang == 'en' ? 'tl' : 'en'; 
 let ME = null;
 const ready = post('lookup').then(r => {
   ME = r.error ? null : r; if (!$('#dinfo')) return;
-  $('#dinfo').innerHTML = ME ? `<b>${esc(ME.guest.name)}</b><small>${esc(ME.guest.email)}</small>` : `<a href="login.php">${t('Log in or register')}</a>`;
+  $('#dinfo').innerHTML = ME ? `<b>${esc(ME.guest.name)}</b><small>${esc(ME.guest.email)}</small>` : `<a href="${loginUrl()}">${t('Log in or register')}</a>`;
   $('#dlogout').hidden = !ME; $$('.auth').forEach(x => x.hidden = !ME);
   if (ME && ME.unread) { $('#nbadge').textContent = ME.unread; $('#nbadge').hidden = false }
 });
@@ -60,11 +60,11 @@ document.addEventListener('submit', async e => {
   f.closest('.pay').innerHTML = `<div class="callout ok"><b data-t>Payment submitted</b><br><span data-t>The hotel will verify your proof of payment and confirm your reservation.</span></div><p><a class="btn" href="reservations.php" data-t>View my reservations</a></p>`; applyLang(); scrollTo({ top: 0, behavior: 'smooth' })
 });
 if ($('#lf')) {
-  const go = async f => { const r = await post(f.id == 'lf' ? 'glogin' : 'register', Object.fromEntries(new FormData(f))); if (r.error) $('#lerr').textContent = r.error; else { const n = new URLSearchParams(location.search).get('next'); location = n && /^(make-reservation|payment)\.php(\?|$)/.test(n) ? n : 'reserve.php' } };
+  const go = async f => { const r = await post(f.id == 'lf' ? 'glogin' : 'register', Object.fromEntries(new FormData(f))); if (r.error) $('#lerr').textContent = r.error; else { location = backTarget() } };
   $('#lf').onsubmit = e => { e.preventDefault(); go(e.target) }; $('#rg').onsubmit = e => { e.preventDefault(); go(e.target) }
 }
 if ($('#acf')) {
-  const f = $('#acf'); ready.then(() => { if (!ME) return location = 'login.php'; f.name.value = ME.guest.name; f.email.value = ME.guest.email || ''; f.phone.value = ME.guest.phone });
+  const f = $('#acf'); ready.then(() => { if (!ME) return location = loginUrl(); f.name.value = ME.guest.name; f.email.value = ME.guest.email || ''; f.phone.value = ME.guest.phone });
   f.onsubmit = async e => {
     e.preventDefault(); const d = Object.fromEntries(new FormData(f)); delete d.email; $('#amsg').className = 'full mu';
     if (!d.name.trim() || d.phone.trim().length < 7) { $('#amsg').className = 'full err'; $('#amsg').textContent = t('Enter a valid name and mobile number'); return }
@@ -96,7 +96,7 @@ if ($('#bklist')) {
     if (r.notes.some(n => !+n.is_read)) { post('notes_read'); if ($('#nbadge')) $('#nbadge').hidden = true }
   };
   const loadBk = () => post('mybookings').then(r => {
-    if (r.error) return location = 'login.php';
+    if (r.error) return location = loginUrl();
     $('#bklist').innerHTML = r.res.map(bkCard).join('') || `<p class="mu" data-t>No reservations yet.</p>`; applyLang()
   });
   loadNotes(); loadBk();
@@ -143,7 +143,7 @@ if (bf) {
   bf.onsubmit = e => { e.preventDefault(); search() };
   bf.ci.addEventListener('change', () => { bf.co.min = bf.ci.value; if (bf.co.value && bf.co.value <= bf.ci.value) bf.co.value = addDays(bf.ci.value, 1) });
   ['ci', 'co', 'pax', 'voucher'].forEach(k => { bf[k].addEventListener('change', live); bf[k].addEventListener('input', live) });
-  const qs = new URLSearchParams(location.search); ['ci', 'co', 'pax'].forEach(k => { if (qs.get(k)) bf[k].value = qs.get(k) });
+  const qs = new URLSearchParams(location.search);['ci', 'co', 'pax'].forEach(k => { if (qs.get(k)) bf[k].value = qs.get(k) });
 
   /* ---- availability calendar: each night is free or booked, for one room or for all rooms ---- */
   const MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -258,7 +258,7 @@ if ($('#wheel')) {
   };
   draw();
   const show = r => { $('#pts').textContent = r.guest.points; $('#spin').disabled = r.guest.points < 100; $('#vl').innerHTML = r.vouchers.map(v => `<li>${esc(v.prize)}</li>`).join('') || `<li class="mu">—</li>` + (r.guest.vip ? `<li>VIP</li>` : '') };
-  const load = async () => { const r = await post('lookup'); $('#rmsg').innerHTML = r.error ? `<a href="login.php">${t('Log in or register')}</a>` : ''; if (!r.error) show(r); return r };
+  const load = async () => { const r = await post('lookup'); $('#rmsg').innerHTML = r.error ? `<a href="${loginUrl()}">${t('Log in or register')}</a>` : ''; if (!r.error) show(r); return r };
   load();
   $('#spin').onclick = async () => {
     $('#spin').disabled = true; $('#win').textContent = ''; const r = await post('spin');
@@ -295,3 +295,12 @@ if ($('#wheel')) {
   });
   mark(); addEventListener('hashchange', mark)
 })();
+
+/* ---- login: remember the page the guest came from and return there afterwards ---- */
+function loginUrl() { return 'login.php?next=' + encodeURIComponent((location.pathname.split('/').pop() || 'index.php') + location.search + location.hash) }
+function safeNext(n) { return typeof n == 'string' && /^[\w-]+\.php(\?[^#]*)?(#[\w-]*)?$/.test(n) && !/^(login|admin)/i.test(n) ? n : null }
+function backTarget() {
+  const q = safeNext(new URLSearchParams(location.search).get('next')); if (q) return q;
+  try { const u = new URL(document.referrer); if (u.origin == location.origin) { const f = safeNext(u.pathname.split('/').pop() + u.search + u.hash); if (f) return f } } catch (e) { }
+  return 'index.php'
+}

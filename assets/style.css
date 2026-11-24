@@ -2191,3 +2191,16 @@ tr.dirty td {
         grid-column: 1/-1
     }
 }
+
+/* ---- logo ---- */
+.brand img {
+    display: block;
+    flex: none;
+    height: 46px;
+    width: auto
+}
+
+.side .brand img,
+.tb .brand img {
+    height: 36px
+}
