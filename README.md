@@ -15,3 +15,8 @@ Logins: admin / admin123 | maria@demo.com, juan@demo.com, carlo@demo.com, ana@de
 - Walk-ins: Admin > Walk-in booking; approved immediately, downpayment recorded as cash.
 - Rooms: Admin > Rooms & rates (rate, capacity, on/off). New rates apply to future bookings only.
 - Rules run automatically whenever any page is opened (no cron job needed). Times use Asia/Manila.
+- Overview tab: shows one calendar month at a time (arrows in the header, up to 1 month ahead). Reservations count in the month they were booked, payments in the month they were submitted. It only lists items that still need action; everything stays on the Payments and Reservations tabs. A new month starts empty by itself, nothing is deleted.
+- Payments: a verified or rejected payment can be set back to pending (Payments tab > Revert to pending). Not possible once the reservation is completed or refunded.
+- Reservations: Complete appears only after the balance is collected; Refund appears only while a refund is still owed.
+- Rooms & Rates: edit any rows and press Save All Changes once. Delete Room removes a room; a room with booking history is hidden instead of erased (reports keep its name), and a room with pending or upcoming bookings cannot be deleted until those are cancelled or completed. (update4.sql adds the needed column; the system also adds it automatically.)
+- Payments and Reservations pages have a search box (name, email, contact no., reference no.) that searches all records.

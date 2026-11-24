@@ -72,7 +72,7 @@ $fmt = fn($d) => date('M j, Y', strtotime($d));
 
 <body class="rpbody">
     <main class="rp">
-        <div class="noprint rpbar"><a class="btn ghost sm" href="admin.php">&larr; Back to dashboard</a>
+        <div class="noprint rpbar"><a class="btn ghost sm" href="admin-reports.php">&larr; Back to Reports</a>
             <form method="get" class="rpform"><label>From<input type="date" name="from" value="<?= h($from) ?>"
                         required></label><label>To<input type="date" name="to" value="<?= h($to) ?>" required></label>
                 <label>Date refers to<select name="by">

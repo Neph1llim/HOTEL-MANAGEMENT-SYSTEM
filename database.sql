@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS rooms (
     rate INT,
     base_cap INT,
     max_cap INT,
-    active TINYINT DEFAULT 1
+    active TINYINT DEFAULT 1,
+    deleted TINYINT DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS guests (

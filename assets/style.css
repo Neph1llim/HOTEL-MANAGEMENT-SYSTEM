@@ -338,26 +338,23 @@ th {
     font-weight: 500
 }
 
+/* status labels: coloured text only, no outline or oval */
 .s {
-    padding: .15rem .6rem;
-    border-radius: 99px;
-    border: 1px solid var(--ln)
+    font-weight: 600;
+    color: var(--mu)
 }
 
 .s.pending {
-    color: var(--acc);
-    border-color: var(--acc)
+    color: var(--acc)
 }
 
 .s.approved,
 .s.completed {
-    color: var(--pri);
-    border-color: var(--pri)
+    color: var(--pri)
 }
 
 .s.cancelled {
-    color: var(--err);
-    border-color: var(--err)
+    color: var(--err)
 }
 
 .big {
@@ -520,73 +517,141 @@ body {
 
 .adm {
     display: grid;
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: 240px minmax(0, 1fr);
     min-height: 100vh
 }
 
 .side {
     background: #0A1512;
     color: #EAF0EC;
-    padding: 1.2rem 1rem;
+    padding: 1.25rem .9rem;
     display: flex;
     flex-direction: column;
-    gap: 1.4rem;
+    gap: 1.6rem;
     position: sticky;
     top: 0;
-    height: 100vh
+    height: 100vh;
+    border-right: 1px solid #12231E
+}
+
+.sidehead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    padding: 0 .3rem
 }
 
 .side .brand {
-    color: #EAF0EC
+    color: #EAF0EC;
+    font-size: 1.3rem;
+    line-height: 1.1;
+    gap: .55rem;
+    min-width: 0
+}
+
+.side .brand svg {
+    flex: none
 }
 
 .side small {
     display: block;
     color: #9DB1A8;
-    font: 400 .75rem var(--bd)
+    font: 400 .72rem var(--bd);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-top: .15rem
 }
 
 .side nav {
     display: grid;
-    gap: .2rem
+    gap: .15rem
 }
 
-.side nav a {
-    color: #CFE0D8;
+.side nav a,
+.sidefoot a,
+.sidefoot button {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    color: #9DB1A8;
     text-decoration: none;
     padding: .6rem .8rem;
     border-radius: 8px;
-    font-weight: 500
+    font: 500 .92rem var(--bd);
+    position: relative;
+    background: none;
+    border: 0;
+    text-align: left;
+    cursor: pointer;
+    transition: background .15s, color .15s
 }
 
-.side nav a:hover {
+.side nav a svg,
+.sidefoot svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+.side nav a:hover,
+.sidefoot a:hover,
+.sidefoot button:hover {
+    background: #12231E;
+    color: #EAF0EC
+}
+
+.side nav a.on {
     background: #12231E;
     color: #D9BC7E
+}
+
+.side nav a.on::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 24%;
+    bottom: 24%;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: #D9BC7E
 }
 
 .sidefoot {
     margin-top: auto;
     display: grid;
-    gap: .5rem
+    gap: .15rem;
+    border-top: 1px solid #12231E;
+    padding-top: .8rem
 }
 
-.sidefoot a,
-.sidefoot button {
+/* dark / light button (admin sidebar): same ☀ / ☾ button as the guest pages; the sidebar is always dark, so fixed colours */
+.thbtn {
+    flex: none;
     background: none;
-    border: 1px solid #1F3A31;
-    color: #CFE0D8;
+    border: 1px solid #1f3a31;
+    color: #EAF0EC;
     border-radius: 8px;
-    padding: .5rem;
-    text-align: center;
-    text-decoration: none;
+    padding: .35rem .7rem;
+    font: inherit;
+    font-family: var(--nav);
     cursor: pointer;
-    font: inherit
+    transition: border-color .15s
+}
+
+.thbtn:hover {
+    border-color: #D9BC7E
 }
 
 .mainadm {
     padding: 1.5rem 2rem 3rem;
-    max-width: 1300px;
-    width: 100%
+    width: 100%;
+    min-width: 0
 }
 
 .tb {
@@ -601,28 +666,64 @@ body {
     margin: 0
 }
 
+.tbsub {
+    margin: .2rem 0 0;
+    max-width: 62ch
+}
+
+.tb {
+    gap: 1rem;
+    flex-wrap: wrap
+}
+
+a.kpi {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color .15s, transform .15s
+}
+
+a.kpi:hover {
+    border-color: var(--pri);
+    transform: translateY(-1px)
+}
+
+.sh.toolbar {
+    gap: .6rem;
+    justify-content: flex-start;
+    margin-bottom: .8rem
+}
+
 .kpis {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-    gap: 1rem
+    display: flex;
+    flex-wrap: nowrap;
+    gap: .65rem;
+    overflow-x: auto;
+    padding-bottom: 2px
 }
 
 .kpi {
+    flex: 1 1 0;
+    min-width: 5.8rem;
     background: var(--sf);
     border: 1px solid var(--ln);
     border-radius: 12px;
-    padding: 1rem 1.2rem
+    padding: .8rem .85rem
 }
 
 .kpi span {
+    display: block;
     color: var(--mu);
-    font-size: .85rem
+    font-size: .76rem;
+    line-height: 1.25;
+    min-height: 2.5em
 }
 
 .kpi b {
     display: block;
-    font: 600 1.8rem var(--bd);
-    margin-top: .2rem
+    font: 600 clamp(1rem, .5vw + .75rem, 1.4rem) var(--bd);
+    margin-top: .45rem;
+    white-space: nowrap
 }
 
 .kpi.hi {
@@ -711,17 +812,34 @@ tbody tr:hover td {
 
 @media(max-width:850px) {
     .adm {
-        grid-template-columns: 1fr
+        grid-template-columns: minmax(0, 1fr);
+        align-content: start
     }
 
     .side {
         position: static;
-        height: auto
+        height: auto;
+        gap: .8rem;
+        padding: .8rem 1rem;
+        border-right: 0
     }
 
     .side nav {
         grid-auto-flow: column;
+        grid-auto-columns: max-content;
         overflow-x: auto
+    }
+
+    .side nav a.on::before {
+        display: none
+    }
+
+    .sidefoot {
+        margin-top: 0;
+        border-top: 0;
+        padding-top: 0;
+        grid-auto-flow: column;
+        grid-auto-columns: max-content
     }
 
     .mainadm {
@@ -759,10 +877,8 @@ body:not(.admbody)>section:last-of-type {
 
 .tag {
     font-size: .7rem;
-    padding: .05rem .45rem;
-    border-radius: 99px;
-    background: color-mix(in srgb, var(--acc) 25%, transparent);
-    color: var(--tx);
+    font-weight: 600;
+    color: var(--acc);
     vertical-align: middle;
     text-transform: uppercase;
     letter-spacing: .03em
@@ -919,6 +1035,12 @@ body:not(.admbody)>section:last-of-type {
 
 .wform .btn {
     align-self: end
+}
+
+.wform label,
+.wform input,
+.wform select {
+    min-width: 0
 }
 
 .wfh {
@@ -1630,4 +1752,442 @@ html {
 
 #about-us {
     scroll-margin-top: 3.5rem
+}
+
+/* ---- admin overview ---- */
+.panel.ovcard {
+    padding: .9rem 1.2rem 1rem;
+    margin-top: 1rem
+}
+
+.ovh {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: .6rem;
+    margin-bottom: .3rem
+}
+
+.admbody .ovh h2 {
+    font-size: 1.2rem;
+    margin: 0
+}
+
+.ovh a {
+    font-size: .85rem;
+    font-weight: 500;
+    color: var(--pri);
+    text-decoration: none;
+    white-space: nowrap
+}
+
+.ovh a:hover {
+    text-decoration: underline
+}
+
+.ovn {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.4rem;
+    height: 1.4rem;
+    padding: 0 .4rem;
+    margin-left: .5rem;
+    border-radius: 999px;
+    background: var(--acc);
+    color: #0A1512;
+    font: 600 .75rem var(--bd);
+    vertical-align: middle
+}
+
+.ovt {
+    font-size: .88rem
+}
+
+.ovt td a {
+    color: var(--pri)
+}
+
+.ovempty {
+    margin: 0;
+    padding: .9rem 0 .4rem;
+    color: var(--mu)
+}
+
+/* month navigation in the header */
+.mnav {
+    display: flex;
+    align-items: center;
+    gap: .4rem
+}
+
+.mnav b {
+    font: 600 1.1rem var(--bd);
+    min-width: 9.5rem;
+    text-align: center
+}
+
+.mnav .mb {
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border-radius: 8px;
+    border: 1px solid var(--ln);
+    background: var(--sf);
+    color: var(--tx);
+    cursor: pointer
+}
+
+.mnav .mb:hover:not(:disabled) {
+    border-color: var(--pri);
+    color: var(--pri)
+}
+
+.mnav .mb:disabled {
+    opacity: .35;
+    cursor: not-allowed
+}
+
+.mnav .mb svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round
+}
+
+/* analytics */
+.anh {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap
+}
+
+.anh .mu b.up {
+    color: var(--pri)
+}
+
+.anh .mu b.dn {
+    color: var(--err)
+}
+
+.angrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem
+}
+
+.panel.ancard {
+    padding: .9rem 1rem .6rem
+}
+
+.anct {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: .6rem
+}
+
+.admbody .anct h3 {
+    margin: 0;
+    font-size: 1rem
+}
+
+.leg {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    font-size: .8rem;
+    color: var(--mu)
+}
+
+.lg {
+    display: inline-block;
+    width: 1.1rem;
+    height: 0;
+    border-top: 3px solid var(--pri);
+    margin-left: .5rem
+}
+
+.lg.b {
+    border-top: 3px dashed var(--acc)
+}
+
+.chart {
+    width: 100%;
+    height: auto;
+    display: block
+}
+
+.chart text {
+    fill: var(--mu);
+    font: 11px var(--bd)
+}
+
+.chart .gl {
+    stroke: var(--ln);
+    stroke-width: 1
+}
+
+.chart .ln {
+    fill: none;
+    stroke-width: 2.4;
+    stroke-linejoin: round;
+    stroke-linecap: round
+}
+
+.chart .ln.a {
+    stroke: var(--pri)
+}
+
+.chart .ln.b {
+    stroke: var(--acc);
+    stroke-dasharray: 6 4
+}
+
+.chart .dot.a {
+    fill: var(--pri)
+}
+
+.chart .dot.b {
+    fill: var(--acc)
+}
+
+.chart .chsel {
+    fill: var(--pri);
+    fill-opacity: .08
+}
+
+.chart .chcol {
+    fill: transparent
+}
+
+.chart .chcol:hover {
+    fill: var(--pri);
+    fill-opacity: .06
+}
+
+@media(max-width:1000px) {
+    .angrid {
+        grid-template-columns: minmax(0, 1fr)
+    }
+}
+
+/* search box, delete button, unsaved room rows */
+.search {
+    width: min(26rem, 100%)
+}
+
+.btn.ghost.danger {
+    color: var(--err);
+    border-color: var(--err)
+}
+
+.btn.ghost.danger:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--err) 12%, transparent)
+}
+
+tr.dirty td {
+    background: color-mix(in srgb, var(--acc) 12%, transparent)
+}
+
+/* ---- admin: aligned buttons, full-width tables ---- */
+/* every admin button has the same 1px border, so filled and outlined buttons are exactly the same height */
+.admbody .btn {
+    border: 1px solid var(--pri);
+    line-height: 1.25;
+    text-align: center;
+    white-space: nowrap
+}
+
+.admbody .btn.ghost {
+    border-color: var(--ln)
+}
+
+.admbody .btn.ghost.danger {
+    border-color: var(--err)
+}
+
+.admbody .btn:not(.sm) {
+    padding: .65rem 1.3rem
+}
+
+/* buttons in a table cell: one row, same gap, right edge lines up from row to row */
+.acts {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: .4rem
+}
+
+.acts small {
+    white-space: nowrap
+}
+
+.admbody table th:last-child,
+.admbody table td:last-child {
+    text-align: right
+}
+
+.admbody table td {
+    vertical-align: middle
+}
+
+.admbody .tw {
+    width: 100%
+}
+
+/* search, filter and save rows: everything on one centre line at the same height */
+.admbody .sh.toolbar {
+    flex-wrap: wrap;
+    align-items: center
+}
+
+.admbody .sh.toolbar .search {
+    flex: 1 1 18rem;
+    max-width: 30rem;
+    width: auto
+}
+
+.admbody .sh.toolbar select {
+    min-width: 11rem
+}
+
+.savebar {
+    margin: .9rem 0 0
+}
+
+.savebar .btn {
+    order: 2;
+    margin-left: auto
+}
+
+.savebar span:empty {
+    display: none
+}
+
+/* "Add a room" / walk-in / report forms: button lines up with the inputs beside it */
+.wform .btn {
+    grid-column: 1/-1;
+    justify-self: end;
+    width: auto;
+    min-width: 11rem
+}
+
+/* tables fit the page instead of scrolling sideways: headings, references and dates stay on one line, other cells may wrap */
+.admbody table td.wrapok,
+.admbody table td small {
+    white-space: normal
+}
+
+.admbody table .nw {
+    white-space: nowrap
+}
+
+.admbody table th,
+.admbody table td {
+    padding-left: .45rem;
+    padding-right: .45rem
+}
+
+/* inputs, selects and big buttons in the same row share one height */
+.wform input:not([type=checkbox]),
+.wform select,
+.sh.toolbar input,
+.sh.toolbar select,
+.admbody .btn:not(.sm) {
+    height: 2.6rem
+}
+
+.wform label {
+    align-content: end
+}
+
+/* laptop-size windows: a little less padding and type so wide tables still fit without a scroll bar */
+@media(max-width:1500px) and (min-width:851px) {
+    .mainadm {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem
+    }
+
+    .panel.tw {
+        padding-left: .5rem;
+        padding-right: .5rem
+    }
+
+    .admbody table {
+        font-size: .86rem
+    }
+
+    .admbody table th,
+    .admbody table td {
+        padding-left: .35rem;
+        padding-right: .35rem
+    }
+}
+
+/* proof links readable on the dark theme (browser default blue is not) */
+.admbody td a {
+    color: var(--pri)
+}
+
+.side .brand span {
+    white-space: nowrap
+}
+
+@media(max-width:1500px) {
+    .kpis {
+        gap: .5rem
+    }
+
+    .kpi {
+        min-width: 5rem;
+        padding: .75rem .65rem
+    }
+}
+
+/* "Add a room" and "Open report" forms: snug to their fields instead of stretching across the page */
+#raf {
+    --n: 5
+}
+
+#rpf {
+    --n: 3
+}
+
+.wform.compact {
+    display: grid;
+    grid-template-columns: repeat(var(--n), 9.5rem) auto;
+    align-items: end;
+    gap: .7rem .9rem;
+    width: fit-content;
+    max-width: 100%;
+    padding: .85rem 1rem
+}
+
+.wform.compact .wfh {
+    font-size: 1rem
+}
+
+.wform.compact .btn {
+    grid-column: auto;
+    justify-self: end;
+    min-width: 0
+}
+
+@media(max-width:850px) {
+    .wform.compact {
+        grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+        width: 100%
+    }
+
+    .wform.compact .btn {
+        grid-column: 1/-1
+    }
 }

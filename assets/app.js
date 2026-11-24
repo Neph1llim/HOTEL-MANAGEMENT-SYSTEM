@@ -31,7 +31,7 @@ const t = s => {
 };
 const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 function applyLang() { document.documentElement.lang = lang; $$('[data-t]').forEach(e => { e.dataset.en ??= e.textContent.trim(); e.textContent = t(e.dataset.en) }); if ($('#lang')) $('#lang').textContent = lang == 'en' ? 'TL' : 'EN' }
-function applyTheme(m) { document.documentElement.dataset.theme = m; localStorage.theme = m; $('#theme').innerHTML = m == 'dark' ? '&#9728;' : '&#9790;' }
+function applyTheme(m) { document.documentElement.dataset.theme = m; localStorage.theme = m; const b = $('#theme'); if (b.classList.contains('tgl')) b.setAttribute('aria-checked', m == 'dark'); else b.innerHTML = m == 'dark' ? '&#9728;' : '&#9790;' }
 applyTheme(localStorage.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')); applyLang();
 $('#theme').onclick = () => applyTheme(document.documentElement.dataset.theme == 'dark' ? 'light' : 'dark');
 if ($('#lang')) $('#lang').onclick = () => { lang = lang == 'en' ? 'tl' : 'en'; localStorage.lang = lang; applyLang() };
