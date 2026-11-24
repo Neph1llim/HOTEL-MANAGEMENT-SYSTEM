@@ -1,27 +1,41 @@
 :root {
-    --bg: #F7F5EF;
-    --sf: #fff;
-    --pri: #0B5D4B;
-    --acc: #C8A96A;
-    --tx: #12231D;
-    --mu: #5C6F66;
-    --ln: #e3ded0;
+    --bg: #F5F2EB;
+    --sf: #FDFBF6;
+    --pri: #113320;
+    --acc: #B88E28;
+    --acc-tx: #86640F;
+    --tx: #0A2214;
+    --mu: #4E6556;
+    --ln: #DDD5C0;
     --err: #A64B3C;
-    --on: #fff;
+    --ok: #2B6E47;
+    --on: #F7F4EC;
     --hd: 'Lora', 'Cormorant Garamond', Georgia, serif;
-    --bd: Inter, system-ui, sans-serif
+    --bd: Inter, system-ui, sans-serif;
+    --forest-d: #0A2214;
+    --emerald: #1B4D32;
+    --gold: #D4AF37;
+    --gold-hi: #E8C868;
+    --gold-lo: #B88E28;
+    --ivory: #F7F4EC;
+    --goldg: linear-gradient(135deg, #E8C868 0%, #D4AF37 48%, #B88E28 100%);
+    --ease: cubic-bezier(.22, .61, .36, 1);
+    color-scheme: light
 }
 
 [data-theme=dark] {
-    --bg: #0A1512;
-    --sf: #12231E;
-    --pri: #3FB59A;
-    --acc: #D9BC7E;
-    --tx: #EAF0EC;
-    --mu: #9DB1A8;
-    --ln: #1f3a31;
-    --on: #0A1512;
-    --err: #E08A78
+    --bg: #0A2214;
+    --sf: #113320;
+    --pri: #D4AF37;
+    --acc: #D4AF37;
+    --acc-tx: #E8C868;
+    --tx: #F7F4EC;
+    --mu: #A9BDB0;
+    --ln: #24503A;
+    --on: #0A2214;
+    --err: #E08A78;
+    --ok: #7FD1A0;
+    color-scheme: dark
 }
 
 * {
@@ -104,8 +118,8 @@ nav a:hover {
 .hero {
     padding: 7rem 1.5rem 6rem;
     text-align: center;
-    background: linear-gradient(160deg, #0B5D4B, #0A1512);
-    color: #EAF0EC
+    background: linear-gradient(160deg, #1B4D32, #0A2214);
+    color: #F7F4EC
 }
 
 .hero h1 {
@@ -116,13 +130,13 @@ nav a:hover {
 .hero p {
     max-width: 46ch;
     margin: 0 auto 1.6rem;
-    color: #cfe0d8;
+    color: #D6E2D8;
     font-size: 1.15rem
 }
 
 .hero .btn {
-    background: #D9BC7E;
-    color: #0A1512
+    background: #E8C868;
+    color: #0A2214
 }
 
 .wrap {
@@ -484,7 +498,7 @@ summary {
 .rimg {
     position: relative;
     aspect-ratio: 4/3;
-    background: linear-gradient(135deg, var(--pri), var(--acc));
+    background: linear-gradient(135deg, var(--emerald), var(--gold-lo));
     border-radius: 10px;
     overflow: hidden;
     display: grid;
@@ -522,8 +536,8 @@ body {
 }
 
 .side {
-    background: #0A1512;
-    color: #EAF0EC;
+    background: #0A2214;
+    color: #F7F4EC;
     padding: 1.25rem .9rem;
     display: flex;
     flex-direction: column;
@@ -531,7 +545,7 @@ body {
     position: sticky;
     top: 0;
     height: 100vh;
-    border-right: 1px solid #12231E
+    border-right: 1px solid #113320
 }
 
 .sidehead {
@@ -543,7 +557,7 @@ body {
 }
 
 .side .brand {
-    color: #EAF0EC;
+    color: #F7F4EC;
     font-size: 1.3rem;
     line-height: 1.1;
     gap: .55rem;
@@ -556,7 +570,7 @@ body {
 
 .side small {
     display: block;
-    color: #9DB1A8;
+    color: #A9BDB0;
     font: 400 .72rem var(--bd);
     letter-spacing: .06em;
     text-transform: uppercase;
@@ -574,7 +588,7 @@ body {
     display: flex;
     align-items: center;
     gap: .7rem;
-    color: #9DB1A8;
+    color: #A9BDB0;
     text-decoration: none;
     padding: .6rem .8rem;
     border-radius: 8px;
@@ -602,13 +616,13 @@ body {
 .side nav a:hover,
 .sidefoot a:hover,
 .sidefoot button:hover {
-    background: #12231E;
-    color: #EAF0EC
+    background: #113320;
+    color: #F7F4EC
 }
 
 .side nav a.on {
-    background: #12231E;
-    color: #D9BC7E
+    background: #113320;
+    color: #E8C868
 }
 
 .side nav a.on::before {
@@ -619,14 +633,14 @@ body {
     bottom: 24%;
     width: 3px;
     border-radius: 0 3px 3px 0;
-    background: #D9BC7E
+    background: #E8C868
 }
 
 .sidefoot {
     margin-top: auto;
     display: grid;
     gap: .15rem;
-    border-top: 1px solid #12231E;
+    border-top: 1px solid #113320;
     padding-top: .8rem
 }
 
@@ -634,8 +648,8 @@ body {
 .thbtn {
     flex: none;
     background: none;
-    border: 1px solid #1f3a31;
-    color: #EAF0EC;
+    border: 1px solid #24503A;
+    color: #F7F4EC;
     border-radius: 8px;
     padding: .35rem .7rem;
     font: inherit;
@@ -645,7 +659,7 @@ body {
 }
 
 .thbtn:hover {
-    border-color: #D9BC7E
+    border-color: #E8C868
 }
 
 .mainadm {
@@ -789,7 +803,7 @@ tbody tr:hover td {
     display: block;
     height: 12px;
     border-radius: 6px;
-    background: linear-gradient(90deg, var(--pri), var(--acc))
+    background: linear-gradient(90deg, var(--gold-lo), var(--gold-hi))
 }
 
 .login {
@@ -1319,8 +1333,8 @@ body:not(.admbody)>section:last-of-type {
 
 /* ---- reservation + payment pages: cream background, forest-green hero and buttons ---- */
 :root {
-    --forest: #0F3B2E;
-    --cream: #F4F1EA
+    --forest: #113320;
+    --cream: #F5F2EB
 }
 
 [data-theme=light] body.flow {
@@ -1329,7 +1343,7 @@ body:not(.admbody)>section:last-of-type {
 
 .flowhero {
     background: var(--forest);
-    color: #F4F1EA;
+    color: #F5F2EB;
     padding: 3rem 0 2.6rem
 }
 
@@ -1367,15 +1381,6 @@ body:not(.admbody)>section:last-of-type {
     border: 1.5px solid var(--ln);
     border-radius: 14px;
     padding: 1.4rem
-}
-
-[data-theme=light] .flow .btn:not(.ghost) {
-    background: var(--forest);
-    color: #fff
-}
-
-[data-theme=light] .flow .btn:not(.ghost):hover {
-    filter: brightness(1.25)
 }
 
 .flow .btn.full {
@@ -1537,9 +1542,19 @@ body:not(.admbody)>section:last-of-type {
 }
 
 .top .brand span {
-    font-family: var(--nav);
-    font-weight: 700;
-    letter-spacing: -.01em
+    font-family: 'Cinzel', 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.2rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    white-space: nowrap
+}
+
+@media(max-width:520px) {
+    .top .brand span {
+        font-size: 1rem;
+        letter-spacing: .1em
+    }
 }
 
 @media(prefers-reduced-motion:reduce) {
@@ -1794,7 +1809,7 @@ html {
     margin-left: .5rem;
     border-radius: 999px;
     background: var(--acc);
-    color: #0A1512;
+    color: #0A2214;
     font: 600 .75rem var(--bd);
     vertical-align: middle
 }
@@ -2203,4 +2218,235 @@ tr.dirty td {
 .side .brand img,
 .tb .brand img {
     height: 36px
+}
+
+/* =====================================================================
+   BELLA VISTA LOGO THEME: deep forest green, brushed gold, warm cream
+   (everything below overrides / extends the base styles above)
+   ===================================================================== */
+html { scroll-behavior: smooth; scroll-padding-top: 5.5rem; scrollbar-color: var(--gold-lo) var(--bg) }
+#about-us { scroll-margin-top: 0 }
+::selection { background: var(--gold); color: var(--forest-d) }
+
+/* ---- typography: classic serif headings, clean sans body/nav ---- */
+h1, h2, h3 { font-weight: 600; letter-spacing: .005em }
+h1 { font-size: clamp(2.6rem, 7vw, 4.8rem) }
+h2 { font-size: 2.4rem }
+.card h3 { font-size: 1.75rem }
+.plist h3 { font-size: 1.4rem }
+section.wrap > h2::after { content: ""; display: block; width: 56px; height: 2px; margin-top: .5rem; border-radius: 2px; background: var(--goldg) }
+section.wrap.narrow > h2::after { margin-inline: auto }
+.eyebrow, .tag, .s.pending { color: var(--acc-tx) }
+.ok, .s.approved, .s.completed, #wmsg.ok, .anh .mu b.up { color: var(--ok) }
+.callout.ok { border-left-color: var(--ok) }
+
+/* ---- header: full-width bar -> floating glass pill ---- */
+.top {
+    position: fixed; top: 0; left: 0; right: 0; margin: 0 auto; width: 100%; max-width: 100%; z-index: 15;
+    flex-wrap: nowrap; gap: 1.2rem; padding: .7rem clamp(1rem, 3vw, 2.5rem);
+    background: rgba(10, 34, 20, .97); color: var(--ivory);
+    border: 1px solid transparent; border-bottom-color: rgba(212, 175, 55, .32); border-radius: 0;
+    -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0);
+    transition: top .55s var(--ease), width .55s var(--ease), max-width .55s var(--ease), padding .55s var(--ease),
+        border-radius .55s var(--ease), background-color .45s ease, border-color .45s ease, box-shadow .55s ease,
+        backdrop-filter .55s ease, -webkit-backdrop-filter .55s ease, transform .5s var(--ease)
+}
+.top.scrolled {
+    top: 12px; width: calc(100% - 24px); max-width: 960px; padding: .35rem .7rem .35rem 1.1rem; border-radius: 60px;
+    background: rgba(10, 34, 20, .68); border-color: rgba(212, 175, 55, .4);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4);
+    box-shadow: 0 14px 40px -10px rgba(4, 14, 8, .55), inset 0 1px 0 rgba(232, 200, 104, .2)
+}
+.top.hide { transform: translateY(calc(-100% - 28px)) }
+.top .brand { color: var(--gold-hi) }
+.top .brand img { transition: height .55s var(--ease) }
+.top.scrolled .brand img { height: 34px }
+.top .brand span {
+    font-family: 'Cinzel', 'Cormorant Garamond', Georgia, serif; font-weight: 600; font-size: 1.2rem; line-height: 1.1;
+    background: linear-gradient(180deg, #F0D683, #D4AF37 55%, #B88E28); -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent
+}
+.top .brand small {
+    display: block; max-height: 1.2rem; margin-top: .22rem; overflow: hidden; white-space: nowrap;
+    font: 500 .56rem var(--nav); letter-spacing: .36em; text-transform: uppercase;
+    -webkit-text-fill-color: var(--gold); color: var(--gold);
+    transition: opacity .4s ease, max-height .5s var(--ease), margin .5s var(--ease)
+}
+.top.scrolled .brand small { opacity: 0; max-height: 0; margin-top: 0 }
+.top nav { gap: .3rem 1.6rem; flex-wrap: nowrap }
+.top nav a { position: relative; color: var(--ivory); white-space: nowrap; padding: .45rem .1rem; transition: color .3s ease }
+.top nav a::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: .1rem; height: 1px;
+    background: linear-gradient(90deg, #B88E28, #E8C868, #B88E28); transform: scaleX(0); transform-origin: left; transition: transform .4s var(--ease)
+}
+.top nav a:hover, .top nav a[aria-current=page] { color: var(--gold-hi); box-shadow: none }
+.top nav a:hover::after, .top nav a[aria-current=page]::after { transform: scaleX(1) }
+.top .tools { display: flex; align-items: center; flex: none }
+.top .tools button {
+    color: var(--ivory); background: transparent; border: 1px solid rgba(212, 175, 55, .42); border-radius: 999px;
+    min-width: 2.4rem; height: 2.4rem; padding: 0 .7rem; transition: background-color .3s ease, border-color .3s ease, color .3s ease
+}
+.top .tools button:hover { background: rgba(212, 175, 55, .18); border-color: var(--gold-hi); color: var(--gold-hi) }
+body:not(.admbody) { padding-top: var(--navh, 4.9rem) }
+.admbody { padding-top: var(--navh, 0px) }
+.sumcard { top: 6rem }
+@media(max-width:1180px) { .top nav { gap: .3rem 1.05rem } .top nav a { font-size: .9rem } }
+@media(max-width:980px) {
+    .top { flex-wrap: wrap; gap: .4rem .8rem; padding: .55rem 1rem }
+    .top .brand { order: 1 } .top .tools { order: 2; margin-left: auto }
+    .top nav { order: 3; width: 100%; overflow-x: auto; gap: 1.2rem; padding: 0 0 .2rem; scrollbar-width: none }
+    .top nav::-webkit-scrollbar { display: none }
+    .top.scrolled { border-radius: 26px; padding: .4rem .8rem .5rem 1rem }
+    body:not(.admbody) { padding-top: var(--navh, 7.4rem) }
+    html { scroll-padding-top: 7.5rem }
+}
+
+/* ---- drawer ---- */
+#drawer { background: var(--bg); border-left: 1px solid color-mix(in srgb, var(--gold-lo) 60%, var(--ln)); box-shadow: -24px 0 60px -30px rgba(4, 14, 8, .6); transition: transform .5s var(--ease), visibility .5s }
+.dinfo { border-bottom: 0; position: relative; background: linear-gradient(160deg, var(--emerald), var(--forest-d)); color: var(--ivory) }
+.dinfo::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--goldg) }
+.dinfo small { color: #C5D3C8 } .dinfo a { color: var(--gold-hi) }
+#drawer > a { transition: background-color .3s ease, padding-left .3s var(--ease), color .3s ease }
+#drawer > a:hover { background: color-mix(in srgb, var(--gold) 14%, transparent); padding-left: 1.9rem; color: var(--acc-tx) }
+#dov { background: rgba(6, 20, 11, .55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px) }
+
+/* ---- buttons ---- */
+.btn {
+    position: relative; border: 1px solid transparent; border-radius: 999px; padding: .72rem 1.5rem; letter-spacing: .02em;
+    background: linear-gradient(180deg, var(--emerald), var(--pri)); color: var(--ivory);
+    box-shadow: inset 0 1px 0 rgba(232, 200, 104, .35), 0 6px 16px -8px rgba(10, 34, 20, .55);
+    transition: transform .25s var(--ease), box-shadow .25s ease, background .3s ease, color .3s ease, border-color .3s ease, filter .25s ease
+}
+.btn:hover:not(:disabled) {
+    transform: translateY(-2px); background: linear-gradient(180deg, #2A6A45, var(--emerald));
+    box-shadow: inset 0 1px 0 rgba(232, 200, 104, .5), 0 0 0 1px var(--gold-lo), 0 12px 24px -10px rgba(10, 34, 20, .6)
+}
+.btn:active:not(:disabled) { transform: translateY(0) }
+[data-theme=dark] .btn:not(.ghost), .btn.gold, .hero .btn {
+    background: var(--goldg); color: var(--forest-d); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), 0 10px 26px -12px rgba(212, 175, 55, .7)
+}
+[data-theme=dark] .btn:not(.ghost):hover:not(:disabled), .btn.gold:hover:not(:disabled), .hero .btn:hover {
+    background: var(--goldg); filter: brightness(1.08); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), 0 14px 30px -12px rgba(212, 175, 55, .85)
+}
+.btn.ghost { background: transparent; color: var(--tx); border-color: color-mix(in srgb, var(--tx) 28%, transparent); box-shadow: none }
+.btn.ghost:hover:not(:disabled) { background: color-mix(in srgb, var(--gold) 16%, transparent); border-color: var(--gold-lo); box-shadow: none }
+.btn.sm { border-radius: 999px }
+.admbody .btn.sm { border-radius: 8px }
+
+/* ---- forms ---- */
+input, select, textarea { border-radius: 10px; background: var(--sf); border: 1px solid var(--ln); transition: border-color .25s ease, box-shadow .25s ease, background-color .25s ease }
+input:hover, select:hover, textarea:hover { border-color: color-mix(in srgb, var(--gold-lo) 60%, var(--ln)) }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212, 175, 55, .28) }
+input[type=checkbox], input[type=radio] { accent-color: var(--pri) }
+
+/* ---- cards, panels, modals, tables ---- */
+.card { border-radius: 18px; box-shadow: inset 0 1px 0 rgba(212, 175, 55, .22), 0 12px 30px -24px rgba(10, 34, 20, .5); transition: border-color .3s ease, box-shadow .35s var(--ease), transform .35s var(--ease), background-color .4s ease }
+.grid > .card:hover { transform: translateY(-4px); border-color: var(--gold-lo); box-shadow: inset 0 1px 0 rgba(212, 175, 55, .35), 0 22px 40px -22px rgba(10, 34, 20, .6) }
+.panel, .kpi { border-radius: 16px }
+.logcard, .sumcard { border-top: 3px solid var(--gold) }
+.callout { border-radius: 12px }
+dialog { border: 1px solid color-mix(in srgb, var(--gold) 55%, var(--ln)); border-radius: 20px; padding: 1.5rem; box-shadow: 0 30px 80px -20px rgba(4, 14, 8, .6) }
+dialog[open] { animation: dlgin .4s var(--ease) }
+dialog::backdrop { background: rgba(6, 20, 11, .62); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px) }
+@keyframes dlgin { from { opacity: 0; transform: translateY(16px) scale(.97) } to { opacity: 1; transform: none } }
+th { font-weight: 600; letter-spacing: .03em }
+thead th { border-bottom: 2px solid color-mix(in srgb, var(--gold-lo) 55%, var(--ln)) }
+summary { color: var(--acc-tx) }
+a { color: inherit }
+footer { background: var(--forest-d); color: var(--ivory); border-top: 2px solid var(--gold-lo) }
+footer p { color: #B9C8BC } footer a { color: var(--gold-hi) } footer h3, footer h4, footer b { color: var(--gold-hi) }
+.pnum { color: var(--gold-hi); border: 1px solid rgba(212, 175, 55, .55) }
+.flowhero { background: radial-gradient(90% 140% at 85% 0%, rgba(212, 175, 55, .18), transparent 55%), linear-gradient(160deg, var(--emerald), var(--forest-d) 85%); border-bottom: 1px solid rgba(212, 175, 55, .4) }
+.flowhero .steps b { color: var(--gold-hi) }
+.flow .card, .profilecard { border-width: 1px }
+.gal div { border-radius: 14px; border: 1px solid color-mix(in srgb, var(--gold-lo) 35%, transparent); transition: filter .4s ease, box-shadow .4s ease }
+.gal div:hover { filter: brightness(1.08) saturate(1.05); box-shadow: 0 16px 36px -18px rgba(10, 34, 20, .7) }
+.photo { border-color: color-mix(in srgb, var(--gold-lo) 40%, var(--ln)) }
+[data-theme=dark] .creamband { background: color-mix(in srgb, var(--sf) 70%, var(--bg)) }
+[data-theme=dark] .chart .ln.b { stroke: #7FB794 } [data-theme=dark] .chart .dot.b { fill: #7FB794 } [data-theme=dark] .lg.b { border-top-color: #7FB794 }
+[data-theme=dark] .day.open { background: color-mix(in srgb, var(--emerald) 60%, var(--sf)); border-color: var(--emerald) }
+.s.approved, .s.completed { color: var(--ok) }
+
+/* ---- theme switch: colours cross-fade ---- */
+.tswap, .tswap *, .tswap *::before, .tswap *::after { transition: background-color .45s ease, color .45s ease, border-color .45s ease, fill .45s ease, stroke .45s ease !important }
+
+/* ---- page transitions: curtain + staggered entrance + exit ---- */
+@keyframes pagein { from { opacity: 0; transform: translateY(18px) } to { opacity: 1; transform: none } }
+@keyframes fadein { from { opacity: 0 } to { opacity: 1 } }
+@keyframes rise { from { opacity: 0; transform: translateY(26px) } to { opacity: 1; transform: none } }
+@keyframes curtainout { from { opacity: 1 } to { opacity: 0 } }
+@keyframes curtainin { from { opacity: 0 } to { opacity: 1 } }
+html::after {
+    content: ""; position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: 0;
+    background: radial-gradient(circle at 50% 40%, var(--emerald), var(--forest-d) 70%);
+    animation: curtainout .65s var(--ease) both
+}
+html.leaving::after { animation: curtainin .3s ease forwards; pointer-events: all }
+body:not(.admbody) > :not(header):not(aside):not(#dov):not(dialog):not(script):not(style):not(link):not(.hero) { animation: pagein .7s var(--ease) .04s backwards }
+body:not(.admbody) > :nth-child(5) { animation-delay: .12s } body:not(.admbody) > :nth-child(6) { animation-delay: .2s } body:not(.admbody) > :nth-child(n+7) { animation-delay: .28s }
+.admbody .mainadm, .admbody .adm > main { animation: fadein .6s ease backwards }
+.login .logcard { animation: rise .7s var(--ease) backwards }
+html.leaving body:not(.admbody) > :not(header):not(aside):not(#dov):not(dialog):not(script):not(style):not(link) { opacity: 0; translate: 0 -10px; transition: opacity .28s ease, translate .28s ease }
+
+/* ---- landing page: scroll-driven morphing (--p goes 0 -> 1, set by app.js) ---- */
+[data-morph] { --p: 1 }
+.js [data-morph] { --p: 0 }
+.hero {
+    position: relative; isolation: isolate; overflow: hidden; display: grid; place-items: center; min-height: min(88vh, 760px);
+    padding: clamp(4.5rem, 11vh, 7.5rem) 1.5rem 10rem; text-align: center; color: var(--ivory);
+    background: radial-gradient(70% 55% at 50% 0%, rgba(212, 175, 55, .2), transparent 70%), linear-gradient(165deg, var(--emerald) 0%, #113320 45%, var(--forest-d) 100%)
+}
+.hero[data-morph] { transform-origin: 50% 0; scale: calc(1 - var(--p) * .075); border-radius: 0 0 calc(var(--p) * 84px) calc(var(--p) * 84px) }
+.hero-bg { position: absolute; inset: 0; z-index: -1; pointer-events: none }
+.hero-bg i { display: block; position: absolute }
+.hero .blob { aspect-ratio: 1; animation: blobmorph 16s ease-in-out infinite alternate }
+.hero .blob.a { width: min(46vw, 520px); left: -8%; top: -12%; opacity: .6; background: radial-gradient(circle at 30% 30%, #2D7048, var(--emerald) 70%); translate: calc(var(--p) * 60px) calc(var(--p) * 90px); scale: calc(1 + var(--p) * .5) }
+.hero .blob.b { width: min(36vw, 400px); right: -6%; bottom: 8%; opacity: .5; background: radial-gradient(circle at 35% 30%, rgba(232, 200, 104, .6), rgba(184, 142, 40, .15) 70%); animation-duration: 21s; animation-direction: alternate-reverse; translate: calc(var(--p) * -70px) calc(var(--p) * -50px); scale: calc(1 + var(--p) * .4) }
+@keyframes blobmorph {
+    0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40% }
+    50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60% }
+    100% { border-radius: 50% 50% 33% 67% / 55% 27% 73% 45% }
+}
+.hero .ring { inset: 0; margin: auto; width: min(78vw, 620px); aspect-ratio: 1; border: 1px solid rgba(212, 175, 55, .45); border-radius: calc(50% - var(--p) * 34%); rotate: calc(var(--p) * 50deg); scale: calc(1 + var(--p) * .7) }
+.hero .mtn { left: -4%; width: 108%; bottom: 0 }
+.hero .mtn.m1 { height: clamp(120px, 22vw, 260px); background: linear-gradient(180deg, #1B4D32, #113320); opacity: .55; translate: 0 calc(var(--p) * 34px); clip-path: polygon(0 100%, 0 58%, 7% 44%, 14% 56%, 25% 24%, 35% 50%, 44% 36%, 55% 60%, 66% 20%, 77% 48%, 86% 32%, 94% 54%, 100% 42%, 100% 100%) }
+.hero .mtn.m2 { height: clamp(80px, 14vw, 170px); background: linear-gradient(180deg, #113320, var(--forest-d)); translate: 0 calc(var(--p) * 14px); clip-path: polygon(0 100%, 0 70%, 10% 52%, 20% 64%, 32% 40%, 43% 62%, 54% 48%, 64% 66%, 76% 36%, 88% 60%, 100% 50%, 100% 100%) }
+.hero-in { position: relative; z-index: 1; translate: 0 calc(var(--p, 0) * -50px); opacity: calc(1 - var(--p, 0) * .85) }
+.hero-in > * { animation: rise .9s var(--ease) backwards }
+.hero-in > :nth-child(2) { animation-delay: .12s } .hero-in > :nth-child(3) { animation-delay: .26s } .hero-in > :nth-child(4) { animation-delay: .4s }
+.hero .hero-eyebrow { max-width: none; margin: 0 0 1.2rem; font: 600 .78rem 'Cinzel', Georgia, serif; letter-spacing: .42em; text-transform: uppercase; color: var(--gold-hi) }
+.hero .hero-eyebrow::before, .hero .hero-eyebrow::after { content: ""; display: inline-block; width: 2.6rem; height: 1px; vertical-align: middle; background: var(--gold-lo); margin: 0 .9rem }
+.hero h1 { max-width: 14ch; margin: 0 auto .35em; font-size: clamp(2.9rem, 8vw, 5.6rem); line-height: 1.02; color: var(--ivory) }
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+    .hero h1 { background: linear-gradient(180deg, #FBF8EF 25%, var(--gold-hi) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent }
+}
+.hero .hero-sub { color: #D6E2D8 }
+.creamband[data-morph] { position: relative; z-index: 1; margin-top: -4rem; border-radius: calc((1 - var(--p)) * 64px) calc((1 - var(--p)) * 64px) 0 0; box-shadow: 0 -24px 50px -30px rgba(10, 34, 20, .55) }
+[data-morph=text] { opacity: calc(.1 + var(--p) * .9); translate: 0 calc((1 - var(--p)) * 34px) }
+.photo[data-morph] { border-radius: calc(14px + (1 - var(--p)) * 170px) 14px calc(14px + (1 - var(--p)) * 170px) 14px; scale: calc(.9 + var(--p) * .1); box-shadow: 0 30px 60px -34px rgba(10, 34, 20, .6) }
+.rev .photo[data-morph] { border-radius: 14px calc(14px + (1 - var(--p)) * 170px) 14px calc(14px + (1 - var(--p)) * 170px) }
+[data-morph=card] { position: relative; overflow: hidden; border-radius: calc(18px + (1 - var(--p)) * 46px); scale: calc(.9 + var(--p) * .1); translate: 0 calc((1 - var(--p)) * 30px) }
+[data-morph=card]::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(145deg, rgba(212, 175, 55, .3), rgba(27, 77, 50, .28)); opacity: calc(1 - var(--p)) }
+[data-morph=card] > * { position: relative; z-index: 1 }
+.gal [data-morph=tile] { border-radius: calc(10px + (1 - var(--p)) * 110px); scale: calc(.86 + var(--p) * .14) }
+.gal [data-morph=tile]:nth-child(even) { border-radius: calc(10px + (1 - var(--p)) * 110px) calc(10px + (1 - var(--p)) * 110px) 10px 10px }
+body:not(.admbody) > .bookband {
+    width: calc(100% - 2rem); max-width: 1100px; margin: 3.5rem auto 1rem; position: relative; overflow: hidden; isolation: isolate;
+    padding: clamp(2rem, 5vw, 3.5rem); color: var(--ivory); border: 1px solid rgba(212, 175, 55, .4);
+    background: linear-gradient(150deg, var(--emerald), #113320 55%, var(--forest-d))
+}
+.bookband[data-morph] { border-radius: calc(30px + (1 - var(--p)) * 150px); scale: calc(.9 + var(--p) * .1) }
+.bookband::before { content: ""; position: absolute; z-index: -1; inset: -30% -10% auto auto; width: 60%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(212, 175, 55, .3), transparent 65%); opacity: calc(.35 + var(--p, 1) * .65); translate: calc((1 - var(--p, 1)) * -80px) 0 }
+.bookband h2 { margin-top: 0; color: var(--ivory) }
+.bookband .mu { color: #C5D3C8 }
+.bookband label { color: var(--ivory) }
+.bookband input { background: rgba(247, 244, 236, .08); border-color: rgba(212, 175, 55, .45); color: var(--ivory); color-scheme: dark }
+.bookband input:focus { background: rgba(247, 244, 236, .14); border-color: var(--gold-hi) }
+
+@media(prefers-reduced-motion:reduce) {
+    html { scroll-behavior: auto }
+    .js [data-morph] { --p: 1 }
+    body > *, .hero-in > *, .hero .blob, .login .logcard, .admbody .mainadm, dialog[open] { animation: none !important }
+    html::after { display: none }
+    .top { transition: none }
 }

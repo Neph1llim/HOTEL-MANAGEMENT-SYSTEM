@@ -33,7 +33,7 @@ const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')
 function applyLang() { document.documentElement.lang = lang; $$('[data-t]').forEach(e => { e.dataset.en ??= e.textContent.trim(); e.textContent = t(e.dataset.en) }); if ($('#lang')) $('#lang').textContent = lang == 'en' ? 'TL' : 'EN' }
 function applyTheme(m) { document.documentElement.dataset.theme = m; localStorage.theme = m; const b = $('#theme'); if (b.classList.contains('tgl')) b.setAttribute('aria-checked', m == 'dark'); else b.innerHTML = m == 'dark' ? '&#9728;' : '&#9790;' }
 applyTheme(localStorage.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')); applyLang();
-$('#theme').onclick = () => applyTheme(document.documentElement.dataset.theme == 'dark' ? 'light' : 'dark');
+$('#theme').onclick = () => { const r = document.documentElement; r.classList.add('tswap'); applyTheme(r.dataset.theme == 'dark' ? 'light' : 'dark'); setTimeout(() => r.classList.remove('tswap'), 600) };
 if ($('#lang')) $('#lang').onclick = () => { lang = lang == 'en' ? 'tl' : 'en'; localStorage.lang = lang; applyLang() };
 
 /* ---- guest session, drawer, payment form ---- */
@@ -271,18 +271,76 @@ if ($('#wheel')) {
   };
 }
 
-/* ---- header: hides while scrolling down, slides back in (sticky) when scrolling up ---- */
+/* ---- header: full-width bar at the top -> floating glass pill when scrolled; hides on scroll down, returns on scroll up ---- */
 (() => {
-  const bar = document.querySelector('header.top'); if (!bar) return; let last = scrollY, tick = false;
+  const bar = document.querySelector('header.top'); if (!bar) return;
+  const root = document.documentElement; let last = scrollY, tick = false;
+  /* the bar is fixed, so remember its full-width height and let the page start below it */
+  const measure = () => {
+    const sc = bar.classList.contains('scrolled'), hd = bar.classList.contains('hide'), tr = bar.style.transition;
+    bar.style.transition = 'none'; bar.classList.remove('scrolled', 'hide');
+    root.style.setProperty('--navh', bar.offsetHeight + 'px');
+    if (sc) bar.classList.add('scrolled'); if (hd) bar.classList.add('hide');
+    void bar.offsetHeight; bar.style.transition = tr
+  };
   const show = () => bar.classList.remove('hide');
   const update = () => {
-    tick = false; const y = Math.max(0, scrollY), d = y - last; if (Math.abs(d) < 6) return;
-    if (y <= 10 || d < 0 || document.querySelector('#drawer.open')) show();
-    else if (y > bar.offsetHeight) bar.classList.add('hide');
+    tick = false; const y = Math.max(0, scrollY), d = y - last;
+    bar.classList.toggle('scrolled', y > 20);
+    if (y <= 20 || document.querySelector('#drawer.open')) { show(); last = y; return }
+    if (Math.abs(d) < 6) return;
+    if (d < 0) show(); else if (y > bar.offsetHeight + 60) bar.classList.add('hide');
     last = y
   };
+  measure(); update();
   addEventListener('scroll', () => { if (!tick) { tick = true; requestAnimationFrame(update) } }, { passive: true });
+  addEventListener('resize', measure);
+  if (document.fonts) document.fonts.ready.then(measure);
   bar.addEventListener('focusin', show);
+})();
+
+/* ---- page transitions: curtain + fade/slide-in on load (CSS), fade-out before following an internal link ---- */
+(() => {
+  const root = document.documentElement;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || document.body.classList.contains('admbody')) return;
+  addEventListener('pageshow', e => { if (e.persisted) root.classList.remove('leaving') });
+  const go = fn => { root.classList.add('leaving'); setTimeout(fn, 300); setTimeout(() => root.classList.remove('leaving'), 5000) };
+  document.addEventListener('click', e => {
+    if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest('a[href]'); if (!a || (a.target && a.target != '_self') || a.hasAttribute('download')) return;
+    if (a.getAttribute('href').startsWith('#')) return;
+    let u; try { u = new URL(a.href, location.href) } catch (x) { return }
+    if (!/^https?:$/.test(u.protocol) || u.origin != location.origin) return;
+    if (u.pathname == location.pathname && u.search == location.search && u.hash) return;
+    e.preventDefault();
+    if (u.href == location.href) { scrollTo({ top: 0, behavior: 'smooth' }); return }
+    go(() => { location.href = u.href })
+  });
+  /* GET forms that opt in with data-fade (e.g. the quick availability form) */
+  document.addEventListener('submit', e => {
+    const f = e.target; if (e.defaultPrevented || !f.matches || !f.matches('form[data-fade]')) return;
+    e.preventDefault(); go(() => f.submit())
+  });
+})();
+
+/* ---- landing page: scroll-driven morphing. Sets --p (0 -> 1) on every [data-morph] element; the CSS turns it into shape / scale / surface changes ---- */
+(() => {
+  const els = $$('[data-morph]');
+  if (!els.length || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const clamp = x => Math.min(1, Math.max(0, x)), ease = x => x * x * (3 - 2 * x);
+  let tick = false;
+  const run = () => {
+    tick = false; const vh = innerHeight;
+    els.forEach(el => {
+      let p;
+      if (el.dataset.morph == 'hero') p = clamp(scrollY / (el.offsetHeight * .7));
+      else { const r = el.getBoundingClientRect(); p = clamp((vh * .98 - r.top - (+el.dataset.o || 0) * vh * .07) / (vh * .5)) }
+      p = ease(p).toFixed(3); if (el._p !== p) { el._p = p; el.style.setProperty('--p', p) }
+    })
+  };
+  const queue = () => { if (!tick) { tick = true; requestAnimationFrame(run) } };
+  run(); addEventListener('scroll', queue, { passive: true }); addEventListener('resize', queue);
+  addEventListener('load', run)
 })();
 
 /* ---- nav: mark the current page / section ---- */
