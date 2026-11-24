@@ -4,7 +4,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 const post = async (a, d = {}) => { const f = new FormData(); f.append('a', a); for (const k in d) f.append(k, d[k]); return (await fetch('api.php', { method: 'POST', body: f })).json() };
 /* English text is the key; add more pairs here to translate more of the site */
 const TL = {
-  "Hall": "Hall", "Make a reservation": "Gumawa ng reserbasyon", "Your Reservation Summary": "Buod ng Inyong Reserbasyon", "Your vouchers": "Mga voucher ninyo", "Voucher code": "Code ng voucher", "Voucher applied": "Nagamit ang voucher", "Unavailable": "Hindi available", "Book / Select Room": "I-book / Piliin ang Kwarto", "No rooms are available for these dates. Please try other dates.": "Walang available na kwarto sa mga petsang ito. Subukan ang ibang petsa.", "Results update automatically as you change the dates, guests or voucher. Fully booked rooms are hidden.": "Awtomatikong nag-a-update ang resulta kapag binago ang petsa, bisita o voucher. Nakatago ang mga kwartong puno na.", "Press and hold on your check-in date, then drag to your check-out date and release.": "Pindutin at hawakan ang petsa ng check-in, i-drag sa petsa ng check-out, saka bitawan.", "Book the hall": "I-book ang hall", "Staff login": "Pag-log in ng staff", "Our rooms": "Aming mga kwarto", "Photos shown here are placeholders. Add your own in assets/img using the file name shown on each card.": "Mga placeholder lamang ang mga larawan dito. Magdagdag ng sarili ninyo sa assets/img gamit ang pangalan ng file sa bawat card.", "Good for 2 to 3 guests": "Para sa 2 hanggang 3 bisita", "Good for 4 to 5 guests": "Para sa 4 hanggang 5 bisita", "Good for up to 30 guests (maximum 40)": "Para sa hanggang 30 bisita (pinakamarami 40)", "per night": "bawat gabi", "Book this room": "I-book ang kwartong ito", "See room photos": "Tingnan ang mga larawan ng kwarto", "Welcome to Bella Vista": "Maligayang pagdating sa Bella Vista", "Log in": "Mag-log in", "Log in or register": "Mag-log in o magparehistro", "Create an account": "Gumawa ng account", "Password": "Password", "My reservations": "Aking mga reserbasyon", "Account profile": "Profile ng account", "Save changes": "I-save ang pagbabago", "Current password": "Kasalukuyang password", "New password": "Bagong password", "Pay now": "Magbayad na", "No reservations yet.": "Wala pang reserbasyon.", "Cancel reservation": "Kanselahin ang reserbasyon", "Cancel this reservation? Your downpayment will be refunded according to the hotel's policy.": "Kakanselahin ang reserbasyon na ito? Ibabalik ang downpayment ayon sa patakaran ng hotel.", "Cancel this reservation? Check-in is less than 3 days away, so the downpayment is non-refundable.": "Kakanselahin ang reserbasyon na ito? Wala pang 3 araw bago ang check-in, kaya hindi na maibabalik ang downpayment.", "Reservation cancelled. Free cancellation applied: please contact the hotel about your refund.": "Nakansela na ang reserbasyon. Libreng pagkansela: makipag-ugnayan sa hotel tungkol sa refund.", "Reservation cancelled. Per the Terms & Conditions, the downpayment is non-refundable.": "Nakansela na ang reserbasyon. Ayon sa Mga Tuntunin at Kondisyon, hindi na maibabalik ang downpayment.", "Reserve a Room": "Mag-reserba ng kwarto", "My Reservations": "Aking mga Reserbasyon", "My Points & Rewards": "Aking Puntos at Gantimpala", "My Vouchers": "Aking mga Voucher", "Account Profile": "Profile ng Account", "Terms & Conditions": "Mga Tuntunin at Kondisyon", "Log out": "Mag-log out", "Scan the QR code and pay the downpayment, then upload your proof of payment.": "I-scan ang QR code at bayaran ang downpayment, saka i-upload ang patunay ng bayad.", "Payment reference no.": "Reference no. ng bayad", "Amount paid": "Halagang binayad", "Proof of payment (screenshot)": "Patunay ng bayad (screenshot)", "Submit payment": "Isumite ang bayad", "Payment submitted": "Naisumite na ang bayad", "The hotel will verify your proof of payment and confirm your reservation.": "Susuriin ng hotel ang patunay ng bayad at kukumpirmahin ang reserbasyon.", "About us": "Tungkol sa amin", "Rooms": "Mga Kwarto", "Book now": "Mag-book na", "Rewards": "Gantimpala", "Foothills of the mountains, Philippines": "Paanan ng kabundukan, Pilipinas", "Open Monday to Sunday": "Bukas Lunes hanggang Linggo", "Check-in": "Check-in", "Check-out": "Check-out",
+  "Hall": "Hall", "Make a reservation": "Gumawa ng reserbasyon", "Policies": "Mga patakaran", "Home": "Home", "About Bella Vista": "Tungkol sa Bella Vista", "See our rooms": "Tingnan ang aming mga kwarto", "Book your stay": "Mag-book ng inyong pananatili", "A quiet retreat at the foot of the mountains": "Tahimik na pahingahan sa paanan ng kabundukan", "From family resthouse to boutique hotel": "Mula resthouse ng pamilya hanggang boutique hotel", "Please read these terms before you reserve. By booking with Bella Vista you agree to them.": "Basahin ang mga tuntuning ito bago magpareserba. Sa pag-book sa Bella Vista, sumasang-ayon kayo sa mga ito.", "Check-in and check-out": "Check-in at check-out", "Downpayment": "Downpayment", "Cancellation": "Pagkansela", "Damage": "Pinsala", "No smoking": "Bawal manigarilyo", "Quiet hours": "Tahimik na oras", "A downpayment secures your reservation. The balance is paid at check-in.": "Kinukumpirma ng downpayment ang inyong reserbasyon. Babayaran ang balanse sa check-in.", "Cancellations less than 3 days before check-in are non-refundable.": "Hindi na maibabalik ang bayad kung kakanselahin nang wala pang 3 araw bago ang check-in.", "Guests are billed for any damage or loss to hotel property, furniture or fixtures.": "Sisingilin ang bisita sa anumang pinsala o pagkawala ng gamit, kasangkapan o fixtures ng hotel.", "Smoking inside guest rooms is prohibited. Violations are fined ₱2,000.": "Bawal ang paninigarilyo sa loob ng mga kwarto. May multang ₱2,000 ang lalabag.", "Keep noise low after 10:00 PM around the accommodation areas.": "Hinaan ang ingay pagkatapos ng 10:00 PM sa paligid ng mga tuluyan.", "Downpayment, cancellation and house rules are in our": "Nasa aming mga patakaran ang downpayment, pagkansela at house rules:", "My profile.": "Aking profile.", "Customer profile": "Profile ng customer", "Email address": "Email address", "Phone number": "Numero ng telepono", "Your email is your login, so it can’t be changed here.": "Ang email ninyo ang inyong login, kaya hindi ito mapapalitan dito.", "Change password (optional)": "Palitan ang password (opsyonal)", "Save profile changes": "I-save ang pagbabago sa profile", "Profile saved": "Na-save ang profile", "Let’s plan your Bella Vista experience.": "Planuhin natin ang inyong karanasan sa Bella Vista.", "Secure your reservation request.": "Siguraduhin ang inyong kahilingan sa reserbasyon.", "1 Reservation": "1 Reserbasyon", "2 Payment": "2 Bayad", "Reservation information": "Impormasyon ng reserbasyon", "Accommodation / Room": "Tuluyan / Kwarto", "Number of guests": "Bilang ng bisita", "Continue to payment": "Magpatuloy sa bayad", "Your reservation summary": "Buod ng inyong reserbasyon", "Additional guests": "Dagdag na bisita", "Estimated total": "Tinatayang kabuuan", "50% downpayment": "50% downpayment", "Balance due upon check-in": "Balanse na babayaran sa check-in", "I agree to the": "Sumasang-ayon ako sa", "terms and conditions": "mga tuntunin at kondisyon", "I agree": "Sumasang-ayon ako", "Close": "Isara", "Submit your 50% downpayment proof": "Isumite ang patunay ng 50% downpayment", "Reference number / GCash transaction reference": "Reference number / GCash transaction reference", "Proof of payment (PNG or JPG/JPEG, max 3 MB)": "Patunay ng bayad (PNG o JPG/JPEG, hanggang 3 MB)", "Only PNG and JPG/JPEG images are allowed": "PNG at JPG/JPEG lamang ang pinapayagan", "Upload a PNG or JPG/JPEG image under 3 MB": "Mag-upload ng PNG o JPG/JPEG na wala pang 3 MB", "Enter the payment reference number and amount paid": "Ilagay ang reference number at halagang binayad", "View my reservations": "Tingnan ang aking mga reserbasyon", "Have a voucher? (optional)": "May voucher? (opsyonal)", "← Back to Check availability": "← Bumalik sa Check availability", "Your Reservation Summary": "Buod ng Inyong Reserbasyon", "Your vouchers": "Mga voucher ninyo", "Voucher code": "Code ng voucher", "Voucher applied": "Nagamit ang voucher", "Unavailable": "Hindi available", "Book / Select Room": "I-book / Piliin ang Kwarto", "No rooms are available for these dates. Please try other dates.": "Walang available na kwarto sa mga petsang ito. Subukan ang ibang petsa.", "Results update automatically as you change the dates, guests or voucher. Fully booked rooms are hidden.": "Awtomatikong nag-a-update ang resulta kapag binago ang petsa, bisita o voucher. Nakatago ang mga kwartong puno na.", "Press and hold on your check-in date, then drag to your check-out date and release.": "Pindutin at hawakan ang petsa ng check-in, i-drag sa petsa ng check-out, saka bitawan.", "Book the hall": "I-book ang hall", "Staff login": "Pag-log in ng staff", "Our rooms": "Aming mga kwarto", "Photos shown here are placeholders. Add your own in assets/img using the file name shown on each card.": "Mga placeholder lamang ang mga larawan dito. Magdagdag ng sarili ninyo sa assets/img gamit ang pangalan ng file sa bawat card.", "Good for 2 to 3 guests": "Para sa 2 hanggang 3 bisita", "Good for 4 to 5 guests": "Para sa 4 hanggang 5 bisita", "Good for up to 30 guests (maximum 40)": "Para sa hanggang 30 bisita (pinakamarami 40)", "per night": "bawat gabi", "Book this room": "I-book ang kwartong ito", "See room photos": "Tingnan ang mga larawan ng kwarto", "Welcome to Bella Vista": "Maligayang pagdating sa Bella Vista", "Log in": "Mag-log in", "Log in or register": "Mag-log in o magparehistro", "Create an account": "Gumawa ng account", "Password": "Password", "My reservations": "Aking mga reserbasyon", "Account profile": "Profile ng account", "Save changes": "I-save ang pagbabago", "Current password": "Kasalukuyang password", "New password": "Bagong password", "Pay now": "Magbayad na", "No reservations yet.": "Wala pang reserbasyon.", "Cancel reservation": "Kanselahin ang reserbasyon", "Cancel this reservation? Your downpayment will be refunded according to the hotel's policy.": "Kakanselahin ang reserbasyon na ito? Ibabalik ang downpayment ayon sa patakaran ng hotel.", "Cancel this reservation? Check-in is less than 3 days away, so the downpayment is non-refundable.": "Kakanselahin ang reserbasyon na ito? Wala pang 3 araw bago ang check-in, kaya hindi na maibabalik ang downpayment.", "Reservation cancelled. Free cancellation applied: please contact the hotel about your refund.": "Nakansela na ang reserbasyon. Libreng pagkansela: makipag-ugnayan sa hotel tungkol sa refund.", "Reservation cancelled. Per the Terms & Conditions, the downpayment is non-refundable.": "Nakansela na ang reserbasyon. Ayon sa Mga Tuntunin at Kondisyon, hindi na maibabalik ang downpayment.", "Reserve a Room": "Mag-reserba ng kwarto", "My Reservations": "Aking mga Reserbasyon", "My Points & Rewards": "Aking Puntos at Gantimpala", "My Vouchers": "Aking mga Voucher", "Account Profile": "Profile ng Account", "Terms & Conditions": "Mga Tuntunin at Kondisyon", "Log out": "Mag-log out", "Scan the QR code and pay the downpayment, then upload your proof of payment.": "I-scan ang QR code at bayaran ang downpayment, saka i-upload ang patunay ng bayad.", "Payment reference no.": "Reference no. ng bayad", "Amount paid": "Halagang binayad", "Proof of payment (screenshot)": "Patunay ng bayad (screenshot)", "Submit payment": "Isumite ang bayad", "Payment submitted": "Naisumite na ang bayad", "The hotel will verify your proof of payment and confirm your reservation.": "Susuriin ng hotel ang patunay ng bayad at kukumpirmahin ang reserbasyon.", "About us": "Tungkol sa amin", "Rooms": "Mga Kwarto", "Book now": "Mag-book na", "Rewards": "Gantimpala", "Foothills of the mountains, Philippines": "Paanan ng kabundukan, Pilipinas", "Open Monday to Sunday": "Bukas Lunes hanggang Linggo", "Check-in": "Check-in", "Check-out": "Check-out",
   "Rest at the foot of the mountains": "Magpahinga sa paanan ng kabundukan", "A quiet eco-chic retreat for families, travelers and celebrations.": "Tahimik na eco-chic na pahingahan para sa pamilya, manlalakbay at mga selebrasyon.",
   "Bella Vista Hotel & Events Place is a premier eco-chic boutique hotel and events destination at the scenic foothills of the mountains. It offers a tranquil, elegant and exclusive retreat for families, tourists and corporate clients, away from the hustle and bustle of the city.": "Ang Bella Vista Hotel & Events Place ay isang premyadong eco-chic boutique hotel at lugar para sa mga okasyon sa magandang paanan ng kabundukan. Tahimik, elegante at eksklusibong pahingahan ito para sa pamilya, turista at kliyenteng korporasyon, malayo sa ingay ng lungsod.",
   "Our history": "Aming kasaysayan", "Established in 2021, Bella Vista began as an exclusive family-owned resthouse. Growing demand for intimate celebrations and restful getaways turned it into a boutique hotel and events venue, known for warm Filipino hospitality, picturesque views and top-tier service.": "Itinatag noong 2021, nagsimula ang Bella Vista bilang pribadong resthouse ng isang pamilya. Dahil sa dumaraming nais ng payapang bakasyon at maliliit na selebrasyon, naging boutique hotel at events venue ito, na kilala sa magiliw na pagtanggap ng Pilipino, magagandang tanawin at de-kalidad na serbisyo.",
@@ -45,21 +45,33 @@ const ready = post('lookup').then(r => {
   if (ME && ME.unread) { $('#nbadge').textContent = ME.unread; $('#nbadge').hidden = false }
 });
 if ($('#menu')) { const d = $('#drawer'); $('#menu').onclick = () => d.classList.toggle('open'); $('#dov').onclick = () => d.classList.remove('open'); $$('#drawer a').forEach(x => x.addEventListener('click', () => d.classList.remove('open'))); $('#dlogout').onclick = async () => { await post('glogout'); location = 'index.php' } }
-const payForm = (ref, down) => `<img class="qr" src="assets/img/payment-qr.png" alt="Add the hotel payment QR at assets/img/payment-qr.png"><p class="mu" data-t>Scan the QR code and pay the downpayment, then upload your proof of payment.</p>
- <form class="pf form" data-ref="${ref}"><label><span data-t>Payment reference no.</span><input name="ref_no" required></label><label><span data-t>Amount paid</span><input type="number" name="amount" step="0.01" value="${down}" required></label><label><span data-t>Proof of payment (screenshot)</span><input type="file" name="proof" accept="image/*" required></label><button class="btn" data-t>Submit payment</button></form><p class="err"></p>`;
+/* proof of payment: PNG or JPG/JPEG only, up to 3 MB (the server checks again) */
+const proofErr = f => !f ? 'Upload a PNG or JPG/JPEG image under 3 MB' : (!/\.(png|jpe?g)$/i.test(f.name) || !['image/png', 'image/jpeg'].includes(f.type)) ? 'Only PNG and JPG/JPEG images are allowed' : f.size > 3000000 ? 'Upload a PNG or JPG/JPEG image under 3 MB' : '';
+document.addEventListener('change', e => {
+  const i = e.target; if (i.name != 'proof' || !i.closest('.pf')) return; const m = proofErr(i.files[0]), out = i.closest('.pf').nextElementSibling;
+  if (m && i.files[0]) { i.value = ''; out.textContent = t(m) } else out.textContent = ''
+});
 document.addEventListener('submit', async e => {
-  const f = e.target; if (!f.classList.contains('pf')) return; e.preventDefault();
+  const f = e.target; if (!f.classList.contains('pf')) return; e.preventDefault(); const out = f.nextElementSibling;
+  if (!f.ref_no.value.trim() || !(+f.amount.value > 0)) { out.textContent = t('Enter the payment reference number and amount paid'); return }
+  const m = proofErr(f.proof.files[0]); if (m) { out.textContent = t(m); return }
   const d = new FormData(f); d.append('a', 'pay'); d.append('ref', f.dataset.ref); const r = await (await fetch('api.php', { method: 'POST', body: d })).json();
-  if (r.error) { f.nextElementSibling.textContent = r.error; return }
-  f.closest('.pay').innerHTML = `<h3 data-t>Payment submitted</h3><p class="mu" data-t>The hotel will verify your proof of payment and confirm your reservation.</p>`; applyLang()
+  if (r.error) { out.textContent = r.error; return }
+  f.closest('.pay').innerHTML = `<div class="callout ok"><b data-t>Payment submitted</b><br><span data-t>The hotel will verify your proof of payment and confirm your reservation.</span></div><p><a class="btn" href="reservations.php" data-t>View my reservations</a></p>`; applyLang(); scrollTo({ top: 0, behavior: 'smooth' })
 });
 if ($('#lf')) {
-  const go = async f => { const r = await post(f.id == 'lf' ? 'glogin' : 'register', Object.fromEntries(new FormData(f))); if (r.error) $('#lerr').textContent = r.error; else { const n = new URLSearchParams(location.search).get('next'); location = n && /^make-reservation\.php(\?|$)/.test(n) ? n : 'reserve.php' } };
+  const go = async f => { const r = await post(f.id == 'lf' ? 'glogin' : 'register', Object.fromEntries(new FormData(f))); if (r.error) $('#lerr').textContent = r.error; else { const n = new URLSearchParams(location.search).get('next'); location = n && /^(make-reservation|payment)\.php(\?|$)/.test(n) ? n : 'reserve.php' } };
   $('#lf').onsubmit = e => { e.preventDefault(); go(e.target) }; $('#rg').onsubmit = e => { e.preventDefault(); go(e.target) }
 }
 if ($('#acf')) {
-  const f = $('#acf'); ready.then(() => { if (!ME) return location = 'login.php'; f.name.value = ME.guest.name; f.phone.value = ME.guest.phone });
-  f.onsubmit = async e => { e.preventDefault(); const r = await post('profile', Object.fromEntries(new FormData(f))); $('#amsg').textContent = r.error || 'Saved'; $('#amsg').className = r.error ? 'err' : 'mu' }
+  const f = $('#acf'); ready.then(() => { if (!ME) return location = 'login.php'; f.name.value = ME.guest.name; f.email.value = ME.guest.email || ''; f.phone.value = ME.guest.phone });
+  f.onsubmit = async e => {
+    e.preventDefault(); const d = Object.fromEntries(new FormData(f)); delete d.email; $('#amsg').className = 'full mu';
+    if (!d.name.trim() || d.phone.trim().length < 7) { $('#amsg').className = 'full err'; $('#amsg').textContent = t('Enter a valid name and mobile number'); return }
+    const r = await post('profile', d);
+    $('#amsg').className = 'full ' + (r.error ? 'err' : 'ok'); $('#amsg').textContent = r.error || t('Profile saved');
+    if (!r.error) { f.cur_pass.value = f.new_pass.value = '' }
+  }
 }
 if ($('#bklist')) {
   const money = (k, v) => `<span data-t>${k}</span> ${peso(v)}`;
@@ -76,7 +88,7 @@ if ($('#bklist')) {
     }
     return ''
   };
-  const bkCard = x => `<article class="card pay"><h3>${esc(x.room)} · ${x.ref}</h3><p>${x.checkin} → ${x.checkout} · ${x.pax} <span data-t>Guests</span></p><p><span data-t>Total</span> ${peso(x.total)} · <span data-t>Downpayment</span> ${peso(x.downpayment)}</p><p><span class="s ${x.status}">${x.status}</span> ${x.pay ? `<span class="s ${x.pay == 'verified' ? 'approved' : x.pay == 'rejected' ? 'cancelled' : 'pending'}">payment ${x.pay}</span>` : ''}</p>${stateLine(x)}${x.status == 'pending' && x.pay != 'pending' ? `<details><summary data-t>Pay now</summary>${payForm(x.ref, x.downpayment)}</details>` : ''}${x.can_cancel ? `<p><button class="btn sm ghost" data-cancel="${x.ref}" data-refund="${x.refundable ? 1 : 0}" data-t>Cancel reservation</button></p>` : (['pending', 'approved'].includes(x.status) && x.pay == 'pending' ? '<p class="mu"><small data-t>Your payment is being verified. You can cancel once it is reviewed.</small></p>' : '')}</article>`;
+  const bkCard = x => `<article class="card pay"><h3>${esc(x.room)} · ${x.ref}</h3><p>${x.checkin} → ${x.checkout} · ${x.pax} <span data-t>Guests</span></p><p><span data-t>Total</span> ${peso(x.total)} · <span data-t>Downpayment</span> ${peso(x.downpayment)}</p><p><span class="s ${x.status}">${x.status}</span> ${x.pay ? `<span class="s ${x.pay == 'verified' ? 'approved' : x.pay == 'rejected' ? 'cancelled' : 'pending'}">payment ${x.pay}</span>` : ''}</p>${stateLine(x)}${x.status == 'pending' && x.pay != 'pending' ? `<p><a class="btn sm" href="payment.php?ref=${x.ref}" data-t>Pay now</a></p>` : ''}${x.can_cancel ? `<p><button class="btn sm ghost" data-cancel="${x.ref}" data-refund="${x.refundable ? 1 : 0}" data-t>Cancel reservation</button></p>` : (['pending', 'approved'].includes(x.status) && x.pay == 'pending' ? '<p class="mu"><small data-t>Your payment is being verified. You can cancel once it is reviewed.</small></p>' : '')}</article>`;
   const ago = s => { const d = new Date(s.replace(' ', 'T')), m = Math.round((Date.now() - d) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.floor(m / 60) + ' h ago' : d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) };
   const loadNotes = async () => {
     const r = await post('notes'); if (r.error || !r.notes.length) { $('#notes').innerHTML = ''; return }
@@ -176,40 +188,40 @@ if (bf) {
   $('#lang').addEventListener('click', () => { drawCal(); syncRoomList() }); loadCal();
 }
 
-/* ---- make reservation: room pre-selected, live summary and total ---- */
+/* ---- reservation page (step 1): room, dates, guests, live summary, terms, then on to the payment page ---- */
 const mr = $('#mr');
 if (mr) {
-  const rooms = JSON.parse(mr.dataset.rooms), qs = new URLSearchParams(location.search), sum = $('#sum'), btn = $('#reserveBtn');
+  const rooms = JSON.parse(mr.dataset.rooms), qs = new URLSearchParams(location.search), sum = $('#sum');
   const addDays = (d, n) => { const x = new Date(d + 'T00:00:00'); x.setDate(x.getDate() + n); return ymd(x) };
-  const byId = id => rooms.find(r => r.id == id);
+  const byId = id => rooms.find(r => r.id == id), slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   rooms.forEach(r => mr.room.add(new Option(`${r.name} · ${peso(r.rate)}`, r.id)));
   mr.room.value = byId(qs.get('room')) ? qs.get('room') : rooms[0]?.id;
   /* defaults: tonight, 1 night, the room's standard capacity */
-  const today = ymd(new Date());
+  const today = ymd(new Date()), cap = () => byId(mr.room.value) || { base_cap: 2, max_cap: 40 };
   mr.ci.min = mr.co.min = today;
   mr.ci.value = qs.get('ci') >= today ? qs.get('ci') : today;
   mr.co.value = qs.get('co') > mr.ci.value ? qs.get('co') : addDays(mr.ci.value, 1);
-  const cap = () => byId(mr.room.value) || { base_cap: 2, max_cap: 40 };
   mr.pax.value = qs.get('pax') || cap().base_cap; mr.pax.max = cap().max_cap; mr.co.min = addDays(mr.ci.value, 1);
-  mr.voucher.value = qs.get('voucher') ? (/^\d+$/.test(qs.get('voucher')) ? 'VCH-' + qs.get('voucher') : qs.get('voucher')) : '';
+  if (qs.get('voucher')) { mr.voucher.value = /^\d+$/.test(qs.get('voucher')) ? 'VCH-' + qs.get('voucher') : qs.get('voucher'); $('#vbox').open = true }
   ready.then(() => { if (ME) ME.vouchers.forEach(v => mr.vsel.add(new Option(`${v.prize} (${v.code})`, v.code))); syncV(); refresh() });
   const syncV = () => { const c = mr.voucher.value.trim().toUpperCase(); mr.vsel.value = [...mr.vsel.options].some(o => o.value == c) ? c : '' };
   const row = (k, v, cls = '') => `<div class="srow ${cls}"><span data-t>${k}</span><b>${v}</b></div>`;
-  const fmt = d => new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-  let seq = 0, ok = false;
+  let seq = 0, ok = false, why = '';
+  const payload = () => { const d = Object.fromEntries(new FormData(mr)); delete d.vsel; delete d.agree; return d };
   async function refresh() {
-    const my = ++seq, d = Object.fromEntries(new FormData(mr)); delete d.vsel;
-    const [q, s] = await Promise.all([post('quote', d), post('search', d)]); if (my != seq) return;
-    /* rooms that are full for these dates are disabled in the dropdown */
+    const my = ++seq, d = payload(); const [q, s] = await Promise.all([post('quote', d), post('search', d)]); if (my != seq) return;
+    /* rooms that are full for these dates are flagged in the dropdown */
     if (!s.error) s.rooms.forEach(x => { const o = [...mr.room.options].find(o => o.value == x.room.id); if (o) { const base = `${x.room.name} · ${peso(x.room.rate)}`; o.disabled = !x.free && x.room.id != mr.room.value; o.textContent = x.free ? base : `${base} (${t('Unavailable')})` } });
-    const r = byId(mr.room.value), code = mr.voucher.value.trim();
-    ok = false; btn.disabled = true; $('#smsg').textContent = '';
-    if (code) { $('#vmsg').className = 'full ' + (q.voucher_ok ? 'ok' : 'err'); $('#vmsg').textContent = q.voucher_ok ? t('Voucher applied') + ': ' + (ME?.vouchers.find(v => v.code == code.toUpperCase() || v.id == code)?.prize || code) : t(q.error && /oucher/.test(q.error) ? q.error : 'Voucher not valid') } else { $('#vmsg').textContent = '' }
-    if (q.nights === undefined) { sum.innerHTML = row('Room', esc(r.name)); $('#smsg').textContent = t(q.error || 'Invalid dates'); return }
-    sum.innerHTML = row('Room', esc(r.name)) + row('Check-in', fmt(mr.ci.value) + ' · 2:00 PM') + row('Check-out', fmt(mr.co.value) + ' · 12:00 NN') + row('Guests', mr.pax.value) + row('night(s)', q.nights) +
-      row(r.type == 'hall' ? 'Hall' : 'Room', peso(q.sub)) + row('Extra guest fee', peso(q.extra)) + row('Discount', '−' + peso(q.disc)) + row('Total', peso(q.total), 'tot') + row('Downpayment', peso(q.down), 'mu');
-    const err = q.error && !(code && /oucher/.test(q.error)) ? q.error : (!q.free ? 'Not available for these dates' : '');
-    $('#smsg').textContent = t(err); ok = !err && !(code && !q.voucher_ok); btn.disabled = !ok; applyLang()
+    const r = byId(mr.room.value), code = mr.voucher.value.trim(), im = $('#sumimg');
+    im.hidden = false; im.innerHTML = `<span>${esc(r.name)}</span><img src="assets/img/${slug(r.name)}.jpg" alt="${esc(r.name)}" onerror="this.remove()">`;
+    ok = false; why = ''; $('#smsg').textContent = '';
+    if (code) { $('#vmsg').className = q.voucher_ok ? 'ok' : 'err'; $('#vmsg').textContent = q.voucher_ok ? t('Voucher applied') + ': ' + (ME?.vouchers.find(v => v.code == code.toUpperCase() || v.id == code)?.prize || code) : t(q.error && /oucher/.test(q.error) ? q.error : 'Voucher not valid') } else { $('#vmsg').textContent = '' }
+    if (q.nights === undefined) { sum.innerHTML = row('Accommodation / Room', esc(r.name)); why = q.error || 'Invalid dates'; $('#smsg').textContent = t(why); applyLang(); return }
+    const balance = Math.max(0, q.total - q.down);
+    sum.innerHTML = row('Accommodation / Room', esc(r.name)) + row(`Room rate (${q.nights} night(s))`, peso(q.sub)) + row('Additional guests', peso(q.extra)) + (+q.disc > 0 ? row('Discount', '−' + peso(q.disc)) : '') +
+      row('Estimated total', peso(q.total), 'tot') + row('50% downpayment', peso(q.down), 'dp') + row('Balance due upon check-in', peso(balance), 'mu');
+    why = q.error && !(code && /oucher/.test(q.error)) ? q.error : (!q.free ? 'Not available for these dates' : (code && !q.voucher_ok ? 'Voucher not valid' : ''));
+    $('#smsg').textContent = t(why); ok = !why; applyLang()
   }
   let tm; const live = () => { clearTimeout(tm); tm = setTimeout(refresh, 120) };
   mr.room.addEventListener('change', () => { mr.pax.value = cap().base_cap; mr.pax.max = cap().max_cap; refresh() });
@@ -217,16 +229,19 @@ if (mr) {
   mr.co.addEventListener('change', refresh); mr.pax.addEventListener('input', live);
   mr.voucher.addEventListener('input', () => { syncV(); live() });                 /* total updates as the code is typed */
   mr.vsel.addEventListener('change', () => { mr.voucher.value = mr.vsel.value; refresh() });
-  mr.addEventListener('submit', e => e.preventDefault());
   $('#lang').addEventListener('click', refresh);
-  btn.onclick = () => { if (!ME) { location = 'login.php?next=' + encodeURIComponent('make-reservation.php' + location.search); return } $('#agree').checked = false; $('#tc').showModal() };
+  $('#tcLink').onclick = e => { e.preventDefault(); $('#tc').showModal() };
   $('#cancelTc').onclick = () => $('#tc').close();
-  $('#confirm').onclick = async () => {
-    if (!$('#agree').checked) return alert(t('Please accept the Terms & Conditions'));
-    const d = Object.fromEntries(new FormData(mr)); delete d.vsel; const r = await post('book', { ...d, agree: 1 }); $('#tc').close();
-    if (r.error) { $('#smsg').textContent = r.error; refresh(); return }
-    $('#make').innerHTML = `<div class="card pay"><h3 data-t>Reservation received</h3><p><span data-t>Reference</span>: <b>${r.ref}</b></p><p><span data-t>Total</span> ${peso(r.total)} · <b><span data-t>Downpayment</span> ${peso(r.down)}</b></p><p class="warn" data-t>Please pay the downpayment and upload your proof within 24 hours, or the room will be released.</p>${payForm(r.ref, r.down)}</div>`; applyLang()
-  };
+  $('#tcAgree').onclick = () => { $('#agree').checked = true; $('#tc').close() };
+  mr.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!$('#agree').checked) { alert(t('Please accept the Terms & Conditions')); $('#agree').focus(); return }   /* stays on this page */
+    if (!ME) { location = 'login.php?next=' + encodeURIComponent('make-reservation.php' + location.search); return }
+    await refresh(); if (!ok) { alert(t(why || 'Invalid dates')); return }
+    const b = $('#reserveBtn'); b.disabled = true; const r = await post('book', { ...payload(), agree: 1 });
+    if (r.error) { b.disabled = false; $('#smsg').textContent = r.error; alert(r.error); refresh(); return }
+    location = 'payment.php?ref=' + encodeURIComponent(r.ref)
+  });
 }
 const qb = $('#qb');
 if (qb) { qb.ci.min = qb.co.min = ymd(new Date()); qb.ci.onchange = () => { qb.co.min = qb.ci.value } }
@@ -255,3 +270,28 @@ if ($('#wheel')) {
     }; requestAnimationFrame(step)
   };
 }
+
+/* ---- header: hides while scrolling down, slides back in (sticky) when scrolling up ---- */
+(() => {
+  const bar = document.querySelector('header.top'); if (!bar) return; let last = scrollY, tick = false;
+  const show = () => bar.classList.remove('hide');
+  const update = () => {
+    tick = false; const y = Math.max(0, scrollY), d = y - last; if (Math.abs(d) < 6) return;
+    if (y <= 10 || d < 0 || document.querySelector('#drawer.open')) show();
+    else if (y > bar.offsetHeight) bar.classList.add('hide');
+    last = y
+  };
+  addEventListener('scroll', () => { if (!tick) { tick = true; requestAnimationFrame(update) } }, { passive: true });
+  bar.addEventListener('focusin', show);
+})();
+
+/* ---- nav: mark the current page / section ---- */
+(() => {
+  const links = [...document.querySelectorAll('header.top nav a')], here = location.pathname.split('/').pop() || 'index.php';
+  const mark = () => links.forEach(a => {
+    const [p, h] = a.getAttribute('href').split('#'), onAbout = location.hash == '#about-us';
+    const on = p == here && (h ? onAbout : !(here == 'index.php' && onAbout));
+    on ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')
+  });
+  mark(); addEventListener('hashchange', mark)
+})();
