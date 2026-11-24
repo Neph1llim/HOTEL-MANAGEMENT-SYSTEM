@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="assets/style.css">
 </head>
 
-<body>
+<body<?= isset($bodyClass) ? ' class="' . $bodyClass . '"' : '' ?>>
     <header class="top"><a class="brand" href="index.php"><svg viewBox="0 0 48 48" width="38" height="38"
                 aria-hidden="true">
                 <circle cx="24" cy="24" r="23" fill="#0B5D4B" />

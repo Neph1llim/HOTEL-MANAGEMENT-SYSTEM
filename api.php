@@ -57,7 +57,7 @@ case 'pay':
  if($s->fetch()['c'])j(['error'=>'Your payment is already waiting to be verified'],422);
  if(!P('ref_no')||(float)P('amount')<=0)j(['error'=>'Enter the payment reference number and amount paid'],422);
  $f=$_FILES['proof']??null;
- if(!$f||$f['error']||$f['size']>3000000||!($i=@getimagesize($f['tmp_name']))||!in_array($i[2],[IMAGETYPE_JPEG,IMAGETYPE_PNG,IMAGETYPE_WEBP]))j(['error'=>'Upload a JPG, PNG or WEBP image under 3 MB'],422);
+ if(!$f||$f['error']||$f['size']>3000000||!preg_match('/\.(png|jpe?g)$/i',$f['name'])||!($i=@getimagesize($f['tmp_name']))||!in_array($i[2],[IMAGETYPE_JPEG,IMAGETYPE_PNG],true))j(['error'=>'Upload a PNG or JPG/JPEG image under 3 MB'],422);
  $fn=bin2hex(random_bytes(12)).image_type_to_extension($i[2]);
  if(!is_dir('uploads'))mkdir('uploads');
  move_uploaded_file($f['tmp_name'],"uploads/$fn");
