@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en" data-theme="light">
-
+  
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -10,15 +10,13 @@
         rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&text=0123456789&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="assets/style.css">
+    <link rel="icon" type="image/png" href="assets/img/favicon.png">
+    <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+    <link rel="stylesheet" href="assets/style.css">                   
 </head>
 
 <body<?= isset($bodyClass) ? ' class="' . $bodyClass . '"' : '' ?>>
-    <header class="top"><a class="brand" href="index.php"><svg viewBox="0 0 48 48" width="38" height="38"
-                aria-hidden="true">
-                <circle cx="24" cy="24" r="23" fill="#0B5D4B" />
-                <path d="M7 35 20 14l7 12 4-6 10 15z" fill="#D9BC7E" />
-            </svg><span>Bella Vista</span></a>
+    <header class="top"><a class="brand" href="index.php"><img src="assets/img/logo.png" alt="" width="52" height="46"><span>Bella Vista</span></a>
         <nav><a href="index.php" data-t>Home</a><a href="index.php#about-us" data-t>About us</a><a href="policies.php" data-t>Policies</a><a href="rooms.php" data-t>Rooms</a><a href="reserve.php"
                 data-t>Book now</a><a href="rewards.php" data-t>Rewards</a></nav>
         <div class="tools"><button id="lang" aria-label="Language">TL</button><button id="theme"

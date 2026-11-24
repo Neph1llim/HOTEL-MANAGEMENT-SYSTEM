@@ -67,6 +67,8 @@ $fmt = fn($d) => date('M j, Y', strtotime($d));
         rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&text=0123456789&display=swap"
         rel="stylesheet">
+    <link rel="icon" type="image/png" href="assets/img/favicon.png">
+    <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
     <link rel="stylesheet" href="assets/style.css">
 </head>
 

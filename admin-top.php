@@ -32,16 +32,15 @@ $nav = [
         rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&text=0123456789&display=swap"
         rel="stylesheet">
+    <link rel="icon" type="image/png" href="assets/img/favicon.png">
+    <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
     <link rel="stylesheet" href="assets/style.css">
 </head>
 
 <body class="admbody">
     <div id="af-wrap" class="login" hidden>
         <form id="af" class="logcard">
-            <div class="brand"><svg viewBox="0 0 48 48" width="38" height="38">
-                    <circle cx="24" cy="24" r="23" fill="#0B5D4B" />
-                    <path d="M7 35 20 14l7 12 4-6 10 15z" fill="#D9BC7E" />
-                </svg><span>Bella Vista</span></div>
+            <div class="brand"><img src="assets/img/logo.png" alt="" width="46" height="40"><span>Bella Vista</span></div>
             <h2 style="margin:0">Staff sign in</h2><label>Username<input name="user" required
                     autofocus></label><label>Password<input type="password" name="pass" required></label><button
                 class="btn">Log in</button>
@@ -51,10 +50,7 @@ $nav = [
     <div id="dash" class="adm" hidden>
         <aside class="side">
             <div class="sidehead">
-                <a class="brand" href="admin.php"><svg viewBox="0 0 48 48" width="32" height="32">
-                        <circle cx="24" cy="24" r="23" fill="#0B5D4B" />
-                        <path d="M7 35 20 14l7 12 4-6 10 15z" fill="#D9BC7E" />
-                    </svg><span>Bella Vista<small>Admin</small></span></a>
+                <a class="brand" href="admin.php"><img src="assets/img/logo.png" alt="" width="40" height="35"><span>Bella Vista<small>Admin</small></span></a>
                 <button id="theme" class="thbtn" type="button" aria-label="Theme" title="Dark / Light mode">&#9790;</button>
             </div>
             <nav aria-label="Admin sections">
