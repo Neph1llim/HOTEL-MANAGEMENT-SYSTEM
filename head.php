@@ -64,8 +64,7 @@
         <aside id="drawer">
             <div id="dinfo" class="dinfo"></div><a href="reserve.php" data-t>Reserve a Room</a><a class="auth" hidden
                 href="reservations.php"><span data-t>My Reservations</span><i id="nbadge" class="badge" hidden></i></a><a
-                class="auth" hidden href="rewards.php" data-t>My Points & Rewards</a><a class="auth" hidden
-                href="rewards.php#vouchers" data-t>My Vouchers</a><a class="auth" hidden href="account.php" data-t>Account
+                class="auth" hidden href="rewards.php" data-t>My Points & Rewards</a><a class="auth" hidden href="account.php" data-t>Account
                 Profile</a><a href="policies.php" data-t>Terms & Conditions</a><button id="dlogout" hidden data-t>Log
                 out</button>
         </aside>

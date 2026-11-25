@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS vouchers (
     nights TINYINT DEFAULT 2,
     status ENUM ('unused', 'used') DEFAULT 'unused',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME NULL,
     FOREIGN KEY (guest_id) REFERENCES guests (id)
 );
 
@@ -175,3 +176,9 @@ WHERE NOT EXISTS (SELECT 1 FROM wheel_prizes);
 -- Default admin: admin / admin123 (change the password after first login)
 INSERT IGNORE INTO admins (username, pass)
 VALUES ('admin', '$2y$10$nFrAvGcMwpHIGMI1Y2q35uEA1O2V5qjkKwI.M5WU8WofYmhoxZaTC');
+
+-- Voucher expiry. NULL = no expiry. The window (days) is configurable in settings.
+ALTER TABLE vouchers ADD COLUMN IF NOT EXISTS expires_at DATETIME NULL AFTER created_at;
+INSERT IGNORE INTO settings (k, v) VALUES ('voucher_days', '30');
+-- Vouchers issued before this change get a full window starting today
+UPDATE vouchers SET expires_at = TIMESTAMP(CURDATE() + INTERVAL 30 DAY, '23:59:59') WHERE expires_at IS NULL;

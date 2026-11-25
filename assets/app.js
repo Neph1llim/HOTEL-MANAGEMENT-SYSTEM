@@ -22,15 +22,20 @@ const TL = {
   "Free room vouchers cover the room rate for the room and the number of nights named in the reward. Extra guest fees still apply.": "Sakop ng libreng voucher ang presyo ng kwarto para sa kwarto at bilang ng gabing nakasaad sa pangalan ng gantimpala. May bayad pa rin ang dagdag na bisita.",
   "2 to 3 guests": "2 hanggang 3 bisita", "4 to 5 guests": "4 hanggang 5 bisita", "Up to 30 guests": "Hanggang 30 bisita", "Notifications": "Mga abiso", "Paid": "Bayad na", "Balance due at check-in": "Balanse na babayaran sa check-in", "Paid in full": "Bayad na lahat", "Balance unpaid": "Hindi pa bayad na balanse", "Availability calendar": "Kalendaryo ng availability", "All rooms (rooms free)": "Lahat ng kwarto (bilang ng libre)", "Free": "Libre", "Booked": "Okupado", "Past": "Lipas na", "Click a free date to set your check-in, then another date for check-out.": "Pindutin ang libreng petsa para sa check-in, saka ang isa pa para sa check-out.", "Please pay the downpayment and upload your proof within 24 hours, or the room will be released.": "Bayaran ang downpayment at i-upload ang patunay sa loob ng 24 oras, o ilalabas ang kwarto.", "Cancelled automatically: no payment received within 24 hours.": "Awtomatikong nakansela: walang natanggap na bayad sa loob ng 24 oras.", "Refund pending: the hotel will contact you.": "Nakabinbin ang refund: makikipag-ugnayan ang hotel.", "Refunded": "Naibalik na ang bayad", "Downpayment kept (non-refundable).": "Hindi na maibabalik ang downpayment.", "Your payment is being verified. You can cancel once it is reviewed.": "Sinusuri pa ang bayad ninyo. Maaari kayong magkansela kapag natapos ang pagsusuri.", "Reservation cancelled.": "Nakansela na ang reserbasyon."
 };
+Object.assign(TL, { "This voucher has expired": "Expired na ang voucher na ito", "Use by": "Gamitin bago ang", "Expired": "Expired na", "Expires today": "Mag-e-expire ngayon", "1 day left": "1 araw na lang", "days left": "araw na lang", "No expiry": "Walang expiry" });
 let lang = localStorage.lang || 'en';
 const t = s => {
   if (lang != 'tl') return s; let m = /^Maximum capacity is (\d+) guests$/.exec(s); if (m) return `Hanggang ${m[1]} bisita lamang`;
   if (m = /^You earn ([\d.]+)% of what you spend after each completed stay\. Each spin costs (\d+) points\.$/.exec(s)) return `Kumikita ka ng ${m[1]}% ng ginastos mo pagkatapos ng bawat natapos na pananatili. ${m[2]} puntos bawat ikot.`;
   if (m = /^Pay before (.+) or the room will be released\.$/.exec(s)) return `Magbayad bago ang ${m[1]} o ilalabas ang kwarto.`;
   if (m = /^Reservation cancelled\. Your refund of (.+) is now pending; the hotel will contact you\.$/.exec(s)) return `Nakansela na ang reserbasyon. Nakabinbin ang refund na ${m[1]}; makikipag-ugnayan ang hotel.`;
+  if (m = /^New vouchers are valid for (\d+) days\. Book before the use-by date\.$/.exec(s)) return `Ang mga bagong voucher ay may bisa nang ${m[1]} araw. Mag-book bago ang use-by date.`;
   return TL[s] || s
 };
 const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const vLeft = v => !v.expires ? '' : +v.days_left <= 0 ? t('Expires today') : +v.days_left == 1 ? t('1 day left') : `${v.days_left} ${t('days left')}`;
+const vOption = (v, val) => { const o = new Option(`${v.prize} (${v.code})` + (v.expires ? ` · ${t(+v.expired ? 'Expired' : 'Use by')} ${v.expires}` : ''), val); o.disabled = !!+v.expired; return o };
+const allV = r => [...r.vouchers, ...(r.expired_vouchers || [])];
 function applyLang() { document.documentElement.lang = lang; $$('[data-t]').forEach(e => { e.dataset.en ??= e.textContent.trim(); e.textContent = t(e.dataset.en) }); if ($('#lang')) $('#lang').textContent = lang == 'en' ? 'TL' : 'EN' }
 function applyTheme(m) { document.documentElement.dataset.theme = m; localStorage.theme = m; const b = $('#theme'); if (b.classList.contains('tgl')) b.setAttribute('aria-checked', m == 'dark'); else b.innerHTML = m == 'dark' ? '&#9728;' : '&#9790;' }
 applyTheme(localStorage.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')); applyLang();
@@ -89,24 +94,30 @@ if ($('#bklist')) {
     }
     return ''
   };
-  const bkCard = x => `<article class="card pay"><h3>${esc(x.room)} · ${x.ref}</h3><p>${x.checkin} → ${x.checkout} · ${x.pax} <span data-t>Guests</span></p><p><span data-t>Total</span> ${peso(x.total)} · <span data-t>Downpayment</span> ${peso(x.downpayment)}</p><p><span class="s ${x.status}">${x.status}</span> ${x.pay ? `<span class="s ${x.pay == 'verified' ? 'approved' : x.pay == 'rejected' ? 'cancelled' : 'pending'}">payment ${x.pay}</span>` : ''}</p>${stateLine(x)}${x.status == 'pending' && x.pay != 'pending' ? `<p><a class="btn sm" href="payment.php?ref=${x.ref}" data-t>Pay now</a></p>` : ''}${x.can_cancel ? `<p><button class="btn sm ghost" data-cancel="${x.ref}" data-refund="${x.refundable ? 1 : 0}" data-t>Cancel reservation</button></p>` : (['pending', 'approved'].includes(x.status) && x.pay == 'pending' ? '<p class="mu"><small data-t>Your payment is being verified. You can cancel once it is reviewed.</small></p>' : '')}</article>`;
-  const ago = s => { const d = new Date(s.replace(' ', 'T')), m = Math.round((Date.now() - d) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.floor(m / 60) + ' h ago' : d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) };
-  const loadNotes = async () => {
-    const r = await post('notes'); if (r.error || !r.notes.length) { $('#notes').innerHTML = ''; return }
-    $('#notes').innerHTML = `<h2 data-t>Notifications</h2><ul class="list notes">` + r.notes.map(n => `<li class="${+n.is_read ? '' : 'unread'}"><span>${esc(n.msg)}</span><small class="mu">${ago(n.created_at)}</small></li>`).join('') + '</ul>'; applyLang();
-    if (r.notes.some(n => !+n.is_read)) { post('notes_read'); if ($('#nbadge')) $('#nbadge').hidden = true }
+  const bkCard = x => {
+    const pill = (c, txt) => `<span class="bkp ${c}">${esc(txt)}</span>`;
+    const pm = x.pay ? pill(x.pay == 'verified' ? 'approved' : x.pay == 'rejected' ? 'cancelled' : 'pending', t('Payment ' + x.pay)) : '';
+    const payBtn = x.status == 'pending' && x.pay != 'pending' ? `<a class="btn sm" href="payment.php?ref=${x.ref}" data-t>Pay now</a>` : '';
+    const canBtn = x.can_cancel ? `<button class="btn sm ghost" data-cancel="${x.ref}" data-refund="${x.refundable ? 1 : 0}" data-t>Cancel reservation</button>` : '';
+    const wait = !x.can_cancel && ['pending', 'approved'].includes(x.status) && x.pay == 'pending' ? '<p class="mu"><small data-t>Your payment is being verified. You can cancel once it is reviewed.</small></p>' : '';
+    const cell = (k, v) => `<div><dt data-t>${k}</dt><dd>${v}</dd></div>`;
+    return `<article class="card pay bk"><header class="bkh"><h3>${esc(x.room)}</h3><span class="bkref">${x.ref}</span></header>` +
+      `<div class="bkpills">${pill(x.status, x.status)}${pm}</div>` +
+      `<dl class="bkmeta">${cell('Check-in', x.checkin)}${cell('Check-out', x.checkout)}${cell('Guests', x.pax)}${cell('Total', peso(x.total))}${cell('Downpayment', peso(x.downpayment))}</dl>` +
+      `<div class="bkstate">${stateLine(x)}${wait}</div>` +
+      (payBtn || canBtn ? `<div class="bkact">${payBtn}${canBtn}</div>` : '') + '</article>'
   };
   const loadBk = () => post('mybookings').then(r => {
     if (r.error) return location = loginUrl();
     $('#bklist').innerHTML = r.res.map(bkCard).join('') || `<p class="mu" data-t>No reservations yet.</p>`; applyLang()
   });
-  loadNotes(); loadBk();
+  loadBk();
   $('#bklist').addEventListener('click', async e => {
     const b = e.target.closest('[data-cancel]'); if (!b) return;
     if (!confirm(t(b.dataset.refund == '1' ? "Cancel this reservation? Your downpayment will be refunded according to the hotel's policy." : 'Cancel this reservation? Check-in is less than 3 days away, so the downpayment is non-refundable.'))) return;
     b.disabled = true; const r = await post('cancel_booking', { ref: b.dataset.cancel });
     if (r.error) { b.disabled = false; alert(r.error); return }
-    await Promise.all([loadBk(), loadNotes()]); alert(t(r.refund > 0 ? `Reservation cancelled. Your refund of ${peso(r.refund)} is now pending; the hotel will contact you.` : r.refundable ? 'Reservation cancelled.' : 'Reservation cancelled. Per the Terms & Conditions, the downpayment is non-refundable.'))
+    await loadBk(); alert(t(r.refund > 0 ? `Reservation cancelled. Your refund of ${peso(r.refund)} is now pending; the hotel will contact you.` : r.refundable ? 'Reservation cancelled.' : 'Reservation cancelled. Per the Terms & Conditions, the downpayment is non-refundable.'))
   });
 }
 
@@ -118,7 +129,9 @@ if (bf) {
   const slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   const addDays = (d, n) => { const x = new Date(d + 'T00:00:00'); x.setDate(x.getDate() + n); return ymd(x) };
   let calMonth = ymd(new Date()).slice(0, 7), calData = null, calRoom = '', freeIds = null, seq = 0;
-  ready.then(() => { if (ME) ME.vouchers.filter(v => v.kind != 'free_food').forEach(v => bf.voucher.add(new Option(`${v.prize} (${v.code})`, v.id))); search() });
+  const vnote = () => { const el = $('#vnote'); if (!el) return; const v = ME?.vouchers.find(v => v.id == bf.voucher.value); el.hidden = !v?.expires; if (v?.expires) el.textContent = `${v.prize} · ${t('Use by')} ${v.expires} · ${vLeft(v)}` };
+  bf.voucher.addEventListener('change', vnote);
+  ready.then(() => { if (ME) allV(ME).filter(v => v.kind != 'free_food').forEach(v => bf.voucher.add(vOption(v, v.id))); search() });
   const link = (id, q) => { const u = new URLSearchParams({ room: id, ci: bf.ci.value, co: bf.co.value, pax: bf.pax.value }); if (bf.voucher.value) u.set('voucher', bf.voucher.value); return 'make-reservation.php?' + u };
   const syncRoomList = () => {
     const sel = $('#croom'); if (!calData) return; const keep = calRoom;
@@ -186,7 +199,7 @@ if (bf) {
   cal.addEventListener('pointerup', finish); cal.addEventListener('pointercancel', finish);
   cal.addEventListener('dragstart', e => e.preventDefault());
   [bf.ci, bf.co].forEach(i => i.addEventListener('change', drawCal));
-  $('#lang').addEventListener('click', () => { drawCal(); syncRoomList() }); loadCal();
+  $('#lang').addEventListener('click', () => { drawCal(); syncRoomList(); vnote() }); loadCal();
 }
 
 /* ---- reservation page (step 1): room, dates, guests, live summary, terms, then on to the payment page ---- */
@@ -204,7 +217,7 @@ if (mr) {
   mr.co.value = qs.get('co') > mr.ci.value ? qs.get('co') : addDays(mr.ci.value, 1);
   mr.pax.value = qs.get('pax') || cap().base_cap; mr.pax.max = cap().max_cap; mr.co.min = addDays(mr.ci.value, 1);
   if (qs.get('voucher')) { mr.voucher.value = /^\d+$/.test(qs.get('voucher')) ? 'VCH-' + qs.get('voucher') : qs.get('voucher'); $('#vbox').open = true }
-  ready.then(() => { if (ME) ME.vouchers.filter(v => v.kind != 'free_food').forEach(v => mr.vsel.add(new Option(`${v.prize} (${v.code})`, v.code))); syncV(); refresh() });
+  ready.then(() => { if (ME) allV(ME).filter(v => v.kind != 'free_food').forEach(v => mr.vsel.add(vOption(v, v.code))); syncV(); refresh() });
   const syncV = () => { const c = mr.voucher.value.trim().toUpperCase(); mr.vsel.value = [...mr.vsel.options].some(o => o.value == c) ? c : '' };
   const row = (k, v, cls = '') => `<div class="srow ${cls}"><span data-t>${k}</span><b>${v}</b></div>`;
   let seq = 0, ok = false, why = '';
@@ -216,12 +229,12 @@ if (mr) {
     const r = byId(mr.room.value), code = mr.voucher.value.trim(), im = $('#sumimg');
     im.hidden = false; im.innerHTML = `<span>${esc(r.name)}</span><img src="assets/img/${slug(r.name)}.jpg" alt="${esc(r.name)}" onerror="this.remove()">`;
     ok = false; why = ''; $('#smsg').textContent = '';
-    if (code) { $('#vmsg').className = q.voucher_ok ? 'ok' : 'err'; $('#vmsg').textContent = q.voucher_ok ? t('Voucher applied') + ': ' + (ME?.vouchers.find(v => v.code == code.toUpperCase() || v.id == code)?.prize || code) : t(q.error && /oucher/.test(q.error) ? q.error : 'Voucher not valid') } else { $('#vmsg').textContent = '' }
+    if (code) { const v = ME?.vouchers.find(v => v.code == code.toUpperCase() || v.id == code); $('#vmsg').className = q.voucher_ok ? 'ok' : 'err'; $('#vmsg').textContent = q.voucher_ok ? t('Voucher applied') + ': ' + (v ? v.prize + (v.expires ? ` · ${t('Use by')} ${v.expires}` : '') : code) : t(q.error && /oucher/.test(q.error) ? q.error : 'Voucher not valid') } else { $('#vmsg').textContent = '' }
     if (q.nights === undefined) { sum.innerHTML = row('Accommodation / Room', esc(r.name)); why = q.error || 'Invalid dates'; $('#smsg').textContent = t(why); applyLang(); return }
     const balance = Math.max(0, q.total - q.down);
     sum.innerHTML = row('Accommodation / Room', esc(r.name)) + row(`Room rate (${q.nights} night(s))`, peso(q.sub)) + row('Additional guests', peso(q.extra)) + (+q.disc > 0 ? row('Discount', '−' + peso(q.disc)) : '') +
       row('Estimated total', peso(q.total), 'tot') + row('50% downpayment', peso(q.down), 'dp') + row('Balance due upon check-in', peso(balance), 'mu');
-    why = q.error && !(code && /oucher/.test(q.error)) ? q.error : (!q.free ? 'Not available for these dates' : (code && !q.voucher_ok ? 'Voucher not valid' : ''));
+    why = q.error && !(code && /oucher/.test(q.error)) ? q.error : (!q.free ? 'Not available for these dates' : (code && !q.voucher_ok ? (/oucher/.test(q.error || '') ? q.error : 'Voucher not valid') : ''));
     $('#smsg').textContent = t(why); ok = !why; applyLang()
   }
   let tm; const live = () => { clearTimeout(tm); tm = setTimeout(refresh, 120) };
@@ -268,7 +281,8 @@ if ($('#wheel')) {
     }); c.restore()
   };
   post('wheel').then(r => { PR = r.prizes || []; draw() });
-  const show = r => { $('#pts').textContent = r.guest.points; $('#spin').disabled = r.guest.points < 100; $('#vl').innerHTML = r.vouchers.map(v => `<li>${esc(v.prize)}</li>`).join('') || `<li class="mu">—</li>` + (r.guest.vip ? `<li>VIP</li>` : '') };
+  const vItem = v => { const x = +v.expired, soon = !x && v.expires && +v.days_left <= 7; return `<li class="vch${x ? ' out' : soon ? ' soon' : ''}"><span>${esc(v.prize)}<small>${esc(v.code)}</small></span><span class="vexp"><b>${v.expires ? `${esc(t(x ? 'Expired' : 'Use by'))} ${esc(v.expires)}` : esc(t('No expiry'))}</b>${x ? '' : `<small>${esc(vLeft(v))}</small>`}</span></li>` };
+  const show = r => { $('#pts').textContent = r.guest.points; $('#spin').disabled = r.guest.points < 100; $('#vl').innerHTML = (allV(r).map(vItem).join('') || '<li class="mu">—</li>') + (r.guest.vip ? '<li>VIP</li>' : '') };
   const load = async () => { const r = await post('lookup'); $('#rmsg').innerHTML = r.error ? `<a href="${loginUrl()}">${t('Log in or register')}</a>` : ''; if (!r.error) show(r); return r };
   load();
   $('#spin').onclick = async () => {

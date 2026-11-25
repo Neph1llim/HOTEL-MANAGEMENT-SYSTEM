@@ -29,6 +29,7 @@
 .calbar b { font-size: 1.05rem; min-width: 8rem }
 #book { padding-bottom: 0 }
 #availability { padding-top: 0 }
+.vnote { margin: .8rem 0 0; padding: .6rem .9rem; color: #F5F2EB; background: #0A2214; border-left: 4px solid #D4AF37; border-radius: 8px }
 </style>
 <section id="book" class="wrap">
     <div class="booktop">
@@ -46,6 +47,7 @@
                 <option value="" data-t>None</option>
             </select></label>
     </form>
+    <p id="vnote" class="vnote" aria-live="polite" hidden></p>
 </section>
 <section id="availability" class="wrap">
     <div class="calbar"><button type="button" class="btn ghost sm" id="cprev"

@@ -9,6 +9,14 @@ function resById($pdo,$id,$lock=false){$s=$pdo->prepare('SELECT * FROM reservati
 function wheelSlices($pr){$o=[];foreach($pr as $p)$o[]=['label'=>$p['label'],'kind'=>$p['base']];return $o;}
 /* a voucher can be given as its id or as its code (VCH-<id>); returns the id or null */
 function vid($v){$v=strtoupper(trim((string)$v));if($v==='')return null;if(preg_match('/^(?:VCH-?)?0*(\d+)$/',$v,$m))return (int)$m[1];return -1;}
+/* days a new voucher stays valid (settings.voucher_days, default 30) */
+function voucherDays($pdo){$d=(int)$pdo->query("SELECT v FROM settings WHERE k='voucher_days'")->fetchColumn();return $d>0?$d:30;}
+/* true when this guest's voucher is past its use-by time */
+function vexpired($pdo,$vid,$gid,$lock=false){
+ if(!$vid||!$gid)return false;
+ $s=$pdo->prepare('SELECT expires_at IS NOT NULL AND expires_at<NOW() FROM vouchers WHERE id=? AND guest_id=?'.($lock?' FOR UPDATE':''));
+ $s->execute([$vid,$gid]);return (bool)$s->fetchColumn();
+}
 /* validates the room form fields shared by room_save and room_add; returns an error text or null */
 function roomErr($pdo,$id,$d=null,$skip=[]){
  $d=$d??['name'=>P('name'),'rate'=>P('rate'),'base_cap'=>P('base_cap'),'max_cap'=>P('max_cap')];
@@ -24,14 +32,17 @@ function roomErr($pdo,$id,$d=null,$skip=[]){
 try{switch($a){
 case 'search':
  $g=guest($pdo);$out=[];
+ $v=vid(P('voucher'));$x=vexpired($pdo,$v,$g['id']??null);
  foreach($pdo->query('SELECT * FROM rooms WHERE active=1 ORDER BY id')->fetchAll() as $r){
-  $q=quote($pdo,$r['id'],P('ci'),P('co'),(int)P('pax'),vid(P('voucher')),$g['id']??null);
+  $q=quote($pdo,$r['id'],P('ci'),P('co'),(int)P('pax'),$x?null:$v,$g['id']??null);
   if(!empty($q['fatal']))j($q,422);
+  if($x)$q['error']=$q['error']??'This voucher has expired';
   $q['room']=$r;$q['free']=avail($pdo,$r['id'],P('ci'),P('co'));$out[]=$q;}
  j(['rooms'=>$out]);
 case 'quote': /* live price for one room: used by the Make Reservation summary, updates as dates, guests or voucher change */
- $g=guest($pdo);$vid=vid(P('voucher'));
- $q=quote($pdo,(int)P('room'),P('ci'),P('co'),(int)P('pax'),$vid,$g['id']??null);
+ $g=guest($pdo);$vid=vid(P('voucher'));$x=vexpired($pdo,$vid,$g['id']??null);
+ $q=quote($pdo,(int)P('room'),P('ci'),P('co'),(int)P('pax'),$x?null:$vid,$g['id']??null);
+ if($x&&empty($q['fatal']))$q['error']=$q['error']??'This voucher has expired';
  if($vid&&!$g)$q=['error'=>'Log in to use a voucher']+(isset($q['nights'])?$q:[]);
  $q['free']=empty($q['fatal'])&&avail($pdo,(int)P('room'),P('ci'),P('co'));
  $q['voucher_ok']=$vid&&!isset($q['error']);
@@ -47,7 +58,9 @@ case 'book':
  $pdo->beginTransaction();
  $pdo->prepare('SELECT id FROM rooms WHERE id=? FOR UPDATE')->execute([P('room')]);
  $gid=$g['id'];
- $vid=vid(P('voucher'));$q=quote($pdo,(int)P('room'),P('ci'),P('co'),(int)P('pax'),$vid,$gid);
+ $vid=vid(P('voucher'));
+ if(vexpired($pdo,$vid,$gid,true)){$pdo->rollBack();j(['error'=>'This voucher has expired'],409);}
+ $q=quote($pdo,(int)P('room'),P('ci'),P('co'),(int)P('pax'),$vid,$gid);
  if(isset($q['error'])||!avail($pdo,P('room'),P('ci'),P('co'))){$pdo->rollBack();j(['error'=>$q['error']??'Sorry, this room was just booked'],409);}
  $ref='BV'.strtoupper(bin2hex(random_bytes(3)));
  $pdo->prepare('INSERT INTO reservations(ref,guest_id,room_id,checkin,checkout,pax,extra_fee,discount,total,downpayment,voucher_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)')->execute([$ref,$gid,P('room'),P('ci'),P('co'),(int)P('pax'),$q['extra'],$q['disc'],$q['total'],$q['down'],$vid]);
@@ -166,9 +179,11 @@ case 'notes_count': /* unread total for the navbar bell */
  $u=$pdo->prepare('SELECT COUNT(*) FROM notifications WHERE guest_id=? AND is_read=0');$u->execute([$g['id']]);j(['unread'=>(int)$u->fetchColumn()]);
 case 'lookup':
  $g=guest($pdo);if(!$g)j(['error'=>'Please log in'],401);
- $v=$pdo->prepare('SELECT id,prize,kind,CONCAT("VCH-",id) code FROM vouchers WHERE guest_id=? AND status="unused"');$v->execute([$g['id']]);
+ $v=$pdo->prepare('SELECT id,prize,kind,CONCAT("VCH-",id) code,DATE_FORMAT(expires_at,"%b %e, %Y") expires,DATEDIFF(expires_at,CURDATE()) days_left,(expires_at IS NOT NULL AND expires_at<NOW()) expired FROM vouchers WHERE guest_id=? AND status="unused" ORDER BY expires_at IS NULL,expires_at');
+ $v->execute([$g['id']]);$ok=[];$old=[];
+ foreach($v->fetchAll() as $x){if((int)$x['expired'])$old[]=$x;else $ok[]=$x;}
  $u=$pdo->prepare('SELECT COUNT(*) c FROM notifications WHERE guest_id=? AND is_read=0');$u->execute([$g['id']]);
- j(['guest'=>['name'=>$g['name'],'first_name'=>$g['first_name']??null,'last_name'=>$g['last_name']??null,'email'=>$g['email'],'phone'=>$g['phone'],'points'=>(int)$g['points'],'vip'=>(int)$g['vip']],'vouchers'=>$v->fetchAll(),'unread'=>(int)$u->fetch()['c']]);
+ j(['guest'=>['name'=>$g['name'],'first_name'=>$g['first_name']??null,'last_name'=>$g['last_name']??null,'email'=>$g['email'],'phone'=>$g['phone'],'points'=>(int)$g['points'],'vip'=>(int)$g['vip']],'vouchers'=>$ok,'expired_vouchers'=>$old,'unread'=>(int)$u->fetch()['c']]);
 case 'wheel': /* public: the enabled rewards in wheel order, so the wheel on the Rewards page always matches Admin > Rewards */
  j(['prizes'=>wheelSlices(wheelPrizes($pdo))]);
 case 'spin':
@@ -184,7 +199,7 @@ case 'spin':
  $p=$pr[$i];
  $pdo->prepare('UPDATE guests SET points=points-?'.($p['base']=='vip'?',vip=1':'').' WHERE id=?')->execute([SPIN_COST,$g['id']]);
  /* the voucher keeps its own copy of what it is worth (name, discount, room, nights), so editing or deleting the reward later never changes vouchers already won */
- if($p['base']!='vip'){$fr=$p['base']=='free_room';$pdo->prepare('INSERT INTO vouchers(guest_id,prize,kind,pct,room_id,room_type,nights) VALUES(?,?,?,?,?,?,?)')->execute([$g['id'],$p['label'],$p['base'],$p['base']=='pct'?(int)$p['pct']:0,$fr?$p['room_id']:null,$fr?$p['room_type']:null,$fr?(int)$p['nights']:2]);}
+ if($p['base']!='vip'){$fr=$p['base']=='free_room';$pdo->prepare('INSERT INTO vouchers(guest_id,prize,kind,pct,room_id,room_type,nights,expires_at) VALUES(?,?,?,?,?,?,?,TIMESTAMP(CURDATE()+INTERVAL '.voucherDays($pdo).' DAY,"23:59:59"))')->execute([$g['id'],$p['label'],$p['base'],$p['base']=='pct'?(int)$p['pct']:0,$fr?$p['room_id']:null,$fr?$p['room_type']:null,$fr?(int)$p['nights']:2]);}
  notify($pdo,$g['id'],$p['base']=='vip'?'Congratulations! You won VIP status: '.$p['label'].'.':'You spun the rewards wheel and won: '.$p['label'].'. Find it under My Vouchers.');
  $pdo->commit();j(['index'=>$i,'prize'=>$p['label'],'points'=>$pts-SPIN_COST,'prizes'=>wheelSlices($pr)]);
 
