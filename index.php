@@ -3,14 +3,6 @@ include 'head.php';
 $rate = [];
 foreach ($pdo->query('SELECT type,MIN(rate) r FROM rooms WHERE active=1 GROUP BY type')->fetchAll() as $x)
     $rate[$x['type']] = number_format($x['r']); ?>
-<style>
-    /* gallery: 3 larger tiles per row (index page only) */
-    .gal.gal3 { grid-template-columns: repeat(3, 1fr); gap: 1.1rem }
-    .gal.gal3 div { aspect-ratio: 3/2; min-height: 240px }
-    @media (max-width: 600px) { .gal.gal3 { grid-template-columns: 1fr } }
-    /* align the Book your stay box with the content edges of the sections above (.wrap = 1100px less 1.5rem side padding) */
-    body:not(.admbody) > .bookband { width: calc(100% - 3rem); max-width: calc(1100px - 3rem) }
-</style>
 <section class="hero" data-morph="hero">
     <div class="hero-bg" aria-hidden="true"><i class="blob a"></i><i class="blob b"></i><i class="ring"></i><i class="mtn m1"></i><i class="mtn m2"></i></div>
     <div class="hero-in">
@@ -66,12 +58,15 @@ foreach ($pdo->query('SELECT type,MIN(rate) r FROM rooms WHERE active=1 GROUP BY
 </section>
 <section class="wrap">
     <h2 data-t data-morph="text">Gallery</h2>
-    <div class="gal gal3">
-        <?php 
-        $gallery= ["pool", "room-b", "room-c", "entrance-event-hall", "Hotel", "event-hall"]; // add dito yung names ng pics
-        for ($i = 1; $i <= 6; $i++)
-            echo "<div data-morph=\"tile\" data-o=\"" . (($i - 1) % 3) . "\" style=\"background-image:url(assets/img/" . $gallery[$i - 1] . ".png),linear-gradient(135deg,var(--emerald),var(--gold-lo))\"></div>"; ?>
+    <div class="gal">
+        <?php
+        $gallery = ["entrance-event-hall", "pool", "event-hall"];
+        foreach ($gallery as $i => $image) {
+            echo "<div data-morph=\"tile\" data-o=\"" . $i . "\" style=\"background-image:url(assets/img/" . $image . ".png),linear-gradient(135deg,var(--emerald),var(--gold-lo))\"></div>";
+        }
+        ?>
     </div>
+    <p><a class="btn ghost" href="gallery.php" data-t>View gallery</a></p>
 </section>
 <section id="book" class="bookband" data-morph="panel">
     <h2 data-t>Book your stay</h2>
@@ -82,8 +77,6 @@ foreach ($pdo->query('SELECT type,MIN(rate) r FROM rooms WHERE active=1 GROUP BY
         <label><span data-t>Guests</span><input type="number" name="pax" min="1" max="40" value="2"
                 required></label><button class="btn gold" data-t>Check availability</button>
     </form>
-</section>
-<section class="wrap">
     <p class="mu"><span data-t>Downpayment, cancellation and house rules are in our</span> <a href="policies.php" data-t>Policies</a>.</p>
-</section>
+ </section>
 <?php include 'foot.php'; ?>
