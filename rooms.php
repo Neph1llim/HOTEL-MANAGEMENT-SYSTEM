@@ -116,7 +116,7 @@ $renderRoom = static function (array $room) use ($info, $imageFiles): void {
 </style>
 <section class="wrap rooms-page">
     <header class="rooms-page__intro">
-        <h1 data-t>Rooms and Event Hall</h1>
+        <h1 data-t>Rooms and event hall</h1>
         <p data-t>Find the right space for a restful stay, a family getaway, or your next special gathering.</p>
     </header>
 
