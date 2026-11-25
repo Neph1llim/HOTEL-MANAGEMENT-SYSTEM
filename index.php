@@ -59,14 +59,14 @@ foreach ($pdo->query('SELECT type,MIN(rate) r FROM rooms WHERE active=1 GROUP BY
 <section class="wrap">
     <h2 data-t data-morph="text">Gallery</h2>
     <div class="gal">
-        <?php 
-        $gallery= ["pool", "room-b", "room-c", "entrance-event-hall", "Hotel", "event-hall"]; // add dito yung names ng pics
-        for ($i = 1; $i <= 6; $i++)
-            echo "<div data-morph=\"tile\" data-o=\"" . (($i - 1) % 3) . "\" style=\"background-image:url(assets/img/" . $gallery[$i - 1] . ".png),linear-gradient(135deg,var(--emerald),var(--gold-lo))\"></div>"; ?>
+        <?php
+        $gallery = ["entrance-event-hall", "pool", "event-hall"];
+        foreach ($gallery as $i => $image) {
+            echo "<div data-morph=\"tile\" data-o=\"" . $i . "\" style=\"background-image:url(assets/img/" . $image . ".png),linear-gradient(135deg,var(--emerald),var(--gold-lo))\"></div>";
+        }
+        ?>
     </div>
-</section>
-<section class="wrap">
-    <p class="mu"><span data-t>Downpayment, cancellation and house rules are in our</span> <a href="policies.php" data-t>Policies</a>.</p>
+    <p><a class="btn ghost" href="gallery.php" data-t>View gallery</a></p>
 </section>
 <section id="book" class="bookband" data-morph="panel">
     <h2 data-t>Book your stay</h2>
@@ -77,5 +77,6 @@ foreach ($pdo->query('SELECT type,MIN(rate) r FROM rooms WHERE active=1 GROUP BY
         <label><span data-t>Guests</span><input type="number" name="pax" min="1" max="40" value="2"
                 required></label><button class="btn gold" data-t>Check availability</button>
     </form>
-</section>
+    <p class="mu"><span data-t>Downpayment, cancellation and house rules are in our</span> <a href="policies.php" data-t>Policies</a>.</p>
+ </section>
 <?php include 'foot.php'; ?>
