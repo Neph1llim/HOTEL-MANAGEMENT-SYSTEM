@@ -26,7 +26,21 @@ if ($('#dash')) {
     const payType = p => p.kind == 'balance' ? 'Paid in Cash' : 'Downpayment';
     const cashTag = p => p.method == 'cash' && p.kind != 'balance' ? ' <span class="tag">cash</span>' : '';
     const shortTag = p => p.kind == 'down' && p.method != 'cash' && +p.amount < +p.downpayment ? ' <small class="err">short</small>' : '';
-    const proofCell = p => p.method == 'cash' ? '<span class="mu">Received in person</span>' : `<a href="proof.php?id=${p.id}" target="_blank">View proof</a>`;
+    const proofCell = p => p.method == 'cash' ? '<span class="mu">Received in person</span>' : `<a href="proof.php?id=${p.id}" data-proof="${p.id}" data-ref="${esc(p.ref)}">View proof</a>`;
+    /* "View proof" opens the image in a popup on the same page (X button, Esc or a click outside closes it) instead of a new tab */
+    document.addEventListener('click', e => {
+        const a = e.target.closest('[data-proof]'), dlg = $('#pfd'); if (!a || !dlg) return;
+        if (e.ctrlKey || e.metaKey || e.shiftKey || e.button) return;   /* still lets staff force a new tab on purpose */
+        e.preventDefault(); const img = $('#pfimg'), box = $('#pfbox');
+        $('#pftitle').textContent = 'Payment proof' + (a.dataset.ref ? ' · ' + a.dataset.ref : ''); box.className = 'pfbox loading';
+        img.hidden = true; img.onload = () => { box.className = 'pfbox'; img.hidden = false }; img.onerror = () => { box.className = 'pfbox failed' };
+        img.src = 'proof.php?id=' + encodeURIComponent(a.dataset.proof); $('#pfopen').href = img.src; dlg.showModal()
+    });
+    if ($('#pfd')) {
+        $('#pfx').onclick = () => $('#pfd').close();
+        $('#pfd').addEventListener('click', e => { const d = $('#pfd'), r = d.getBoundingClientRect(); if (e.target === d && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) d.close() });   /* only a click on the dark backdrop closes it, not the popup's own padding */
+        $('#pfd').addEventListener('close', () => { $('#pfimg').removeAttribute('src') })
+    }
     const stay = x => `<span class="nw">${x.checkin}</span> → <span class="nw">${x.checkout}</span>`;
     const acts = h => h ? `<div class="acts">${h}</div>` : '';
     const reviewBtns = p => acts(`<button class="btn sm" data-pid="${p.id}" data-s="verified">Verify</button>` + btn('pid', p.id, 'Reject', 'rejected'));
@@ -99,9 +113,12 @@ if ($('#dash')) {
         $('#chmonth').innerHTML = lineChart(MS, [{ ...B, data: prev }, { ...A, data: cur }], selI);
         $('#chcum').innerHTML = lineChart(MS, [{ ...B, data: cum(prev) }, { ...A, data: cum(cur) }], selI);
         const leg = `<i class="lg a"></i>${A.name}<i class="lg b"></i>${B.name}`; $('#anleg1').innerHTML = $('#anleg2').innerHTML = leg;
-        const k = lastI + 1, sum = a => a.reduce((t, v) => t + v, 0), c = sum(cur.slice(0, k)), p = sum(prev.slice(0, k));
-        const delta = p > 0 ? ` <b class="${c >= p ? 'up' : 'dn'}">${c >= p ? '▲' : '▼'} ${Math.abs(Math.round((c - p) / p * 100))}%</b>` : '';
-        $('#anyear').innerHTML = k ? `${A.name}: <b>${peso(c)}</b> so far · ${B.name} same months: ${peso(p)}${delta}` : `No revenue recorded yet in ${A.name}`
+    };
+
+    /* occupancy by room type for the selected month: number of bookings per room type (standard, family, event hall), same bar graph as the old "booked value by room type" */
+    const drawOcc = o => {
+        $('#anleg3').textContent = monthName(o.month); const mx = Math.max(1, ...o.rows.map(x => +x.bookings));
+        $('#choc').innerHTML = o.rows.map(x => `<div class="bar"><span>${x.type}</span><i style="width:${x.bookings / mx * 100}%"></i><b>${x.bookings} <small class="mu">${x.bookings == 1 ? 'booking' : 'bookings'} (${x.nights} night${x.nights == 1 ? '' : 's'})</small></b></div>`).join('')
     };
 
     /* rooms: edit any rows, then ONE "Save All Changes" saves every modified row at once */
@@ -140,9 +157,8 @@ if ($('#dash')) {
         if ($('#ovpays')) drawOvPays(r.ov.pays);
         if ($('#ovres')) drawOvRes(r.ov.res);
         drawRes(); drawRooms(); fillWalkSelect(); if (window.loadRw) loadRw();
-        if ($('#bytype')) { const mx = Math.max(1, ...r.byType.map(x => +x.rev));
-        $('#bytype').innerHTML = r.byType.map(x => `<div class="bar"><span>${x.type}</span><i style="width:${x.rev / mx * 100}%"></i><b>${peso(x.rev)} <small class="mu">(${x.n})</small></b></div>`).join('') || '<p class="mu">No approved bookings this month</p>' }
         if ($('#chmonth')) drawCharts(r.yearly, r.month, r.now_month);
+        if ($('#choc')) drawOcc(r.occ);
     };
 
     af.onsubmit = async e => { e.preventDefault(); const r = await post('login', Object.fromEntries(new FormData(af))); $('#aerr').textContent = r.error || ''; if (!r.error) load() };
