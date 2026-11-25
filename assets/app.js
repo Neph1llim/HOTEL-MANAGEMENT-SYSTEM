@@ -110,12 +110,27 @@ if ($('#bklist')) {
   });
 }
 
+/* ---- Room image mapping shared by the booking and checkout summary screens ---- */
+const roomImageFile = name => {
+  const key = String(name || '').trim().toLowerCase();
+  const images = {
+    'room a': 'room-a.png', 'room b': 'room-bbb.png', 'room c': 'room-a.png',
+    'fr1': 'fr1.png', 'fr2': 'fr2-copy.png', 'fr3': 'fr3.png',
+    'event hall': 'event-hall.png'
+  };
+  return images[key] || '';
+};
+const roomImagePath = (room, type = '') => {
+  const file = roomImageFile(room) || (String(type).toLowerCase() === 'hall' ? 'event-hall.png' : 'room-a.png');
+  return 'assets/img/' + file;
+};
+
+
 /* ---- check availability: live results, full rooms hidden, drag-to-select calendar ---- */
 const bf = $('#bf');
 if (bf) {
   const fd = () => Object.fromEntries(new FormData(bf)), box = $('#results');
   bf.ci.min = bf.co.min = ymd(new Date());
-  const slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   const addDays = (d, n) => { const x = new Date(d + 'T00:00:00'); x.setDate(x.getDate() + n); return ymd(x) };
   let calMonth = ymd(new Date()).slice(0, 7), calData = null, calRoom = '', freeIds = null, seq = 0;
   ready.then(() => { if (ME) ME.vouchers.filter(v => v.kind != 'free_food').forEach(v => bf.voucher.add(new Option(`${v.prize} (${v.code})`, v.id))); search() });
@@ -134,7 +149,7 @@ if (bf) {
     const open = r.rooms.filter(q => q.free && (!calRoom || q.room.id == calRoom));   /* full rooms hidden; the Room dropdown picks which room(s) show */
     freeIds = new Set(open.map(q => +q.room.id));
     box.innerHTML = open.length ? open.map(q => {
-      const ok = !q.error, n = esc(q.room.name); return `<article class="card"><div class="rimg"><span>${n}</span><img src="assets/img/${slug(q.room.name)}.jpg" alt="${n}" onerror="this.remove()"></div><h3>${n}</h3>` + (ok ?
+      const ok = !q.error, n = esc(q.room.name), img = roomImagePath(q.room.name, q.room.type); return `<article class="card"><div class="rimg"><span>${n}</span><img src="${img}" alt="${n}" loading="lazy" onerror="this.remove()"></div><h3>${n}</h3>` + (ok ?
         `<p>${q.nights} <span data-t>night(s)</span> · <span data-t>${q.room.type == 'hall' ? 'Hall' : 'Room'}</span> ${peso(q.sub)}</p><p><span data-t>Extra guest fee</span> ${peso(q.extra)}</p><p><span data-t>Discount</span> −${peso(q.disc)}</p><p><b><span data-t>Total</span> ${peso(q.total)}</b></p><p class="mu"><span data-t>Downpayment</span> ${peso(q.down)}</p><a class="btn" href="${link(q.room.id, q)}" data-t>Book / Select Room</a>`
         : `<p class="err" data-t>${esc(q.error)}</p><a class="btn ghost" href="${link(q.room.id, q)}" data-t>Book / Select Room</a>`) + '</article>'
     }).join('') : `<p class="mu" data-t>No rooms are available for these dates. Please try other dates.</p>`;
@@ -194,7 +209,7 @@ const mr = $('#mr');
 if (mr) {
   const rooms = JSON.parse(mr.dataset.rooms), qs = new URLSearchParams(location.search), sum = $('#sum');
   const addDays = (d, n) => { const x = new Date(d + 'T00:00:00'); x.setDate(x.getDate() + n); return ymd(x) };
-  const byId = id => rooms.find(r => r.id == id), slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const byId = id => rooms.find(r => r.id == id);
   rooms.forEach(r => mr.room.add(new Option(`${r.name} · ${peso(r.rate)}`, r.id)));
   mr.room.value = byId(qs.get('room')) ? qs.get('room') : rooms[0]?.id;
   /* defaults: tonight, 1 night, the room's standard capacity */
@@ -214,7 +229,7 @@ if (mr) {
     /* rooms that are full for these dates are flagged in the dropdown */
     if (!s.error) s.rooms.forEach(x => { const o = [...mr.room.options].find(o => o.value == x.room.id); if (o) { const base = `${x.room.name} · ${peso(x.room.rate)}`; o.disabled = !x.free && x.room.id != mr.room.value; o.textContent = x.free ? base : `${base} (${t('Unavailable')})` } });
     const r = byId(mr.room.value), code = mr.voucher.value.trim(), im = $('#sumimg');
-    im.hidden = false; im.innerHTML = `<span>${esc(r.name)}</span><img src="assets/img/${slug(r.name)}.jpg" alt="${esc(r.name)}" onerror="this.remove()">`;
+    im.hidden = false; im.innerHTML = `<span>${esc(r.name)}</span><img src="${roomImagePath(r.name, r.type)}" alt="${esc(r.name)}" loading="lazy" onerror="this.remove()">`; 
     ok = false; why = ''; $('#smsg').textContent = '';
     if (code) { $('#vmsg').className = q.voucher_ok ? 'ok' : 'err'; $('#vmsg').textContent = q.voucher_ok ? t('Voucher applied') + ': ' + (ME?.vouchers.find(v => v.code == code.toUpperCase() || v.id == code)?.prize || code) : t(q.error && /oucher/.test(q.error) ? q.error : 'Voucher not valid') } else { $('#vmsg').textContent = '' }
     if (q.nights === undefined) { sum.innerHTML = row('Accommodation / Room', esc(r.name)); why = q.error || 'Invalid dates'; $('#smsg').textContent = t(why); applyLang(); return }

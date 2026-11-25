@@ -1426,15 +1426,20 @@ body:not(.admbody)>section:last-of-type {
 
 .sumimg {
     margin: -.4rem -.4rem 1rem;
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
-    max-height: 170px
+    height: 210px;
+    max-height: 210px;
+    width: calc(100% + .8rem);
 }
 
+
 .sumimg img {
+    display: block;
     width: 100%;
-    height: 170px;
-    object-fit: cover
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
 }
 
 .srow.dp b {
