@@ -9,13 +9,13 @@ $info = ['standard' => ['Good for 2 to 3 guests', "₱1,000 extra for a 3rd gues
         $slug = strtolower(preg_replace('/[^A-Za-z0-9]+/', '-', $r['name']));
         $n = htmlspecialchars($r['name']); ?>
             <article class="card">
-                <div class="rimg"><span><?= $n ?></span><img src="assets/img/<?= $slug ?>.jpg" alt="<?= $n ?>"
+                <div class="rimg"><span><?= $n ?></span><img src="assets/img/<?= $slug ?>.png" alt="<?= $n ?>"
                         onerror="this.remove()"></div>
                 <h3><?= $n ?></h3>
                 <p data-t><?= $info[$r['type']][0] ?></p>
                 <p><b>₱<?= number_format($r['rate']) ?></b> <span data-t>per night</span></p>
                 <p class="mu" data-t><?= $info[$r['type']][1] ?></p>
-                <p class="mu"><small>assets/img/<?= $slug ?>.jpg</small></p><a class="btn" href="make-reservation.php?room=<?= (int) $r['id'] ?>"
+                <p class="mu"><small>assets/img/<?= $slug ?>.png</small></p><a class="btn" href="make-reservation.php?room=<?= (int) $r['id'] ?>"
                     data-t><?= $r['type'] == 'hall' ? 'Book the hall' : 'Book this room' ?></a>
             </article><?php } ?>
     </div>
