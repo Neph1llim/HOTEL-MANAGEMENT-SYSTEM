@@ -231,7 +231,6 @@ case 'dash':
  $q=$pdo->prepare('SELECT COUNT(*) c FROM payments WHERE status="pending" AND created_at>=? AND created_at<?');$q->execute([$ms,$me]);$st['pays_pending']=(int)$q->fetch()['c'];
  $q=$pdo->prepare("SELECT COALESCE(SUM(CASE WHEN r.total>$paidSub THEN r.total-$paidSub ELSE 0 END),0) s FROM reservations r WHERE r.status IN('approved','completed') AND r.created_at>=? AND r.created_at<?");$q->execute([$ms,$me]);
  $st['balance_due']=(float)$q->fetch()['s'];
- $q=$pdo->prepare('SELECT m.type,COUNT(*) n,SUM(r.total) rev FROM reservations r JOIN rooms m ON m.id=r.room_id WHERE r.status IN("approved","completed") AND r.created_at>=? AND r.created_at<? GROUP BY m.type');$q->execute([$ms,$me]);$bt=$q->fetchAll();
  $rooms=$pdo->query('SELECT m.*,(SELECT COUNT(*) FROM reservations r WHERE r.room_id=m.id AND r.status="approved" AND r.checkin<=CURDATE() AND r.checkout>CURDATE()) occ,(SELECT COUNT(*) FROM reservations r WHERE r.room_id=m.id AND r.status IN("pending","approved") AND r.checkout>CURDATE()) upcoming FROM rooms m WHERE m.deleted=0 ORDER BY m.id')->fetchAll();
  /* reservations: full list for the Reservations tab; Overview gets only this month's items that still need action
     (pending, approved, or cancelled with a refund still to pay out) */
@@ -264,7 +263,7 @@ case 'dash':
   $q->execute(["$y-01-01",($y+1).'-01-01']);
   foreach($q->fetchAll() as $x)$a[(int)$x['m']-1]-=(float)$x['s'];
   return $a;};
- j(['stats'=>$st,'byType'=>$bt,'rooms'=>$rooms,'res'=>$rs,'pays'=>$pays,'ov'=>['res'=>$ovr,'pays'=>$ovp],'month'=>$month,'now_month'=>$nowM,'max_month'=>$maxM,'yearly'=>['year'=>$yr,'cur'=>$series($yr),'prev'=>$series($yr-1)]]);
+ j(['stats'=>$st,'rooms'=>$rooms,'res'=>$rs,'pays'=>$pays,'ov'=>['res'=>$ovr,'pays'=>$ovp],'month'=>$month,'now_month'=>$nowM,'max_month'=>$maxM,'yearly'=>['year'=>$yr,'cur'=>$series($yr),'prev'=>$series($yr-1)],'occ'=>['month'=>$month,'rows'=>bookingsByType($pdo,$ms,$me)]]);
 case 'status': /* complete or cancel a reservation */
  adm();$n=P('s');
  $pdo->beginTransaction();
