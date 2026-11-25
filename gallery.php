@@ -8,7 +8,7 @@ include 'head.php';
  */
 $galleryImages = [
     [
-        'file' => 'assets/img/room-a.png',
+        'file' => 'assets/img/room-b.png',
         'category' => 'standard',
         'categoryLabel' => 'Standard Rooms',
         'title' => 'Standard Room',
@@ -32,7 +32,7 @@ $galleryImages = [
         'alt' => 'Event hall arranged with round tables and chairs',
     ],
     [
-        'file' => 'assets/img/Dine In Area.png',
+        'file' => 'assets/img/Dine-In-Area.png',
         'category' => 'dining',
         'categoryLabel' => 'Dining Areas',
         'title' => 'Indoor Dining Area',
@@ -52,7 +52,7 @@ $galleryImages = [
         'category' => 'exterior',
         'categoryLabel' => 'Hotel & Grounds',
         'title' => 'Event Hall Entrance',
-        'description' => 'The hotel entrance and approach, framed by tropical landscaping and outdoor lighting.',
+        'description' => 'An elegant event hall entrance with refined décor and a spacious layout, creating a welcoming first impression for guests.',
         'alt' => 'Event hall entrance framed by tropical landscaping',
     ],
     [
@@ -64,11 +64,11 @@ $galleryImages = [
         'alt' => 'Hotel exterior with landscaped grounds and pool area',
     ],
     [
-        'file' => 'assets/img/g1.png',
+        'file' => 'assets/img/Hotel-Lounge.png',
         'category' => 'facilities',
         'categoryLabel' => 'Hotel Interiors',
         'title' => 'Hotel Facility',
-        'description' => 'A view of one of the hotel’s guest facilities.',
+        'description' => 'A welcoming hotel lounge with comfortable seating, warm lighting, and a relaxed atmosphere for guests to unwind.',
         'alt' => 'Hotel facility interior',
     ],
     [
@@ -76,7 +76,7 @@ $galleryImages = [
         'category' => 'facilities',
         'categoryLabel' => 'Hotel Interiors',
         'title' => 'Hotel Interior',
-        'description' => 'An interior lounge or reception-style space with seating, timber details, and indoor plants.',
+        'description' => 'A bright and orderly hallway leading to the guest rooms, offering guests a pleasant and comfortable passage throughout the hotel.',
         'alt' => 'Hotel interior with seating, timber details, and plants',
     ],
 ];
@@ -126,7 +126,7 @@ $galleryImages = [
     <button class="gallery-lightbox__backdrop" type="button" data-lightbox-close aria-label="Close image preview"></button>
     <div class="gallery-lightbox__panel" role="document">
         <div class="gallery-lightbox__top">
-            <p class="gallery-lightbox__counter" id="lightbox-counter" aria-live="polite">1 of 8</p>
+            <p class="gallery-lightbox__counter" id="lightbox-counter" aria-live="polite">1 of 9</p>
             <button class="gallery-lightbox__close" type="button" data-lightbox-close aria-label="Close image preview">×</button>
         </div>
         <div class="gallery-lightbox__stage">
@@ -173,6 +173,14 @@ $galleryImages = [
 .gallery-lightbox { position:fixed; z-index:1000; inset:0; display:grid; place-items:center; padding:clamp(.5rem,2vw,1.5rem); }
 .gallery-lightbox__backdrop { position:absolute; inset:0; width:100%; height:100%; border:0; background:rgba(4,15,9,.92); cursor:default; }
 .gallery-lightbox__panel { position:relative; z-index:1; display:flex; flex-direction:column; width:min(1100px,100%); max-height:96dvh; overflow:auto; border:1px solid rgba(255,255,255,.16); border-radius:16px; background:var(--sf); color:var(--tx); box-shadow:0 25px 80px #0005; }
+.gallery-lightbox__panel { opacity:0; transform:translateY(12px) scale(.97); transition:opacity .28s ease,transform .32s cubic-bezier(.2,.75,.25,1); }
+.gallery-lightbox.is-open .gallery-lightbox__panel { opacity:1; transform:translateY(0) scale(1); }
+.gallery-lightbox__stage img { opacity:1; }
+@keyframes gallery-image-fade {
+    from { opacity:.35; }
+    to { opacity:1; }
+}
+.gallery-lightbox__stage img.is-entering { animation:gallery-image-fade .18s ease-out both; }
 .gallery-lightbox__top { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.7rem 1rem; }
 .gallery-lightbox__counter { margin:0; color:var(--mu); font-size:.85rem; font-variant-numeric:tabular-nums; }
 .gallery-lightbox__close { width:40px; height:40px; border:1px solid var(--ln); border-radius:50%; background:transparent; color:var(--tx); font-size:1.7rem; line-height:1; cursor:pointer; }
@@ -187,7 +195,11 @@ $galleryImages = [
 body.gallery-lightbox-open { overflow:hidden; }
 @media(max-width:900px) { .gallery-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; } .gallery-content { width:calc(100% - 2rem); } }
 @media(max-width:560px) { .gallery-grid { grid-template-columns:minmax(0,1fr); } .gallery-content { width:calc(100% - 1.25rem); } .gallery-card__details { padding:1rem; } .gallery-lightbox__panel { max-height:98dvh; border-radius:12px; } .gallery-lightbox__stage img { max-height:55vh; } .gallery-lightbox__nav { width:38px; height:46px; } }
-@media(prefers-reduced-motion:reduce) { .gallery-card,.gallery-card__photo img,.gallery-card__view { transition:none; } }
+@media(prefers-reduced-motion:reduce) {
+    .gallery-card,.gallery-card__photo img,.gallery-card__view,
+    .gallery-lightbox__panel { transition:none; }
+    .gallery-lightbox__stage img.is-entering { animation:none; }
+}
 </style>
 
 <script>
@@ -220,8 +232,12 @@ body.gallery-lightbox-open { overflow:hidden; }
     function showImage(index) {
         currentIndex = (index + visibleIndexes.length) % visibleIndexes.length;
         const data = imageData[visibleIndexes[currentIndex]];
-        previewImage.src = data.src;
+        previewImage.classList.remove('is-entering');
         previewImage.alt = data.alt;
+        previewImage.src = data.src;
+        // Restart the entrance animation for every image selection.
+        void previewImage.offsetWidth;
+        previewImage.classList.add('is-entering');
         previewTitle.textContent = data.title;
         previewDescription.textContent = data.description;
         previewCategory.textContent = data.category;
@@ -238,13 +254,16 @@ body.gallery-lightbox-open { overflow:hidden; }
         lightbox.hidden = false;
         document.body.classList.add('gallery-lightbox-open');
         showImage(currentIndex);
+        requestAnimationFrame(() => lightbox.classList.add('is-open'));
         lightbox.querySelector('.gallery-lightbox__close').focus();
     }
 
     function closeLightbox() {
+        lightbox.classList.remove('is-open');
         lightbox.hidden = true;
         document.body.classList.remove('gallery-lightbox-open');
         previewImage.removeAttribute('src');
+        previewImage.classList.remove('is-entering');
         if (returnFocus) returnFocus.focus();
     }
 
