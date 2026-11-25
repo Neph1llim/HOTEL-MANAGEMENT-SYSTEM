@@ -1,7 +1,6 @@
 <?php
 $page = 'payments';
 $title = 'Payments';
-$sub = 'Check each payment proof, then verify or reject it.';
 require __DIR__ . '/admin-top.php';
 ?>
             <div class="sh toolbar">

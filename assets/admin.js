@@ -34,7 +34,7 @@ if ($('#dash')) {
         e.preventDefault(); const img = $('#pfimg'), box = $('#pfbox');
         $('#pftitle').textContent = 'Payment proof' + (a.dataset.ref ? ' · ' + a.dataset.ref : ''); box.className = 'pfbox loading';
         img.hidden = true; img.onload = () => { box.className = 'pfbox'; img.hidden = false }; img.onerror = () => { box.className = 'pfbox failed' };
-        img.src = 'proof.php?id=' + encodeURIComponent(a.dataset.proof); $('#pfopen').href = img.src; dlg.showModal()
+        img.src = 'proof.php?id=' + encodeURIComponent(a.dataset.proof); dlg.showModal()
     });
     if ($('#pfd')) {
         $('#pfx').onclick = () => $('#pfd').close();

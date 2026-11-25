@@ -1,7 +1,6 @@
 <?php
 $page = 'overview';
 $title = 'Overview';
-$sub = 'Bookings and payments that need your attention this month.';
 require __DIR__ . '/admin-top.php';
 ?>
             <div id="stats" class="kpis"></div>
@@ -27,7 +26,6 @@ require __DIR__ . '/admin-top.php';
                     <div class="panel ancard wide">
                         <div class="anct"><h3>Occupancy by room type</h3><span id="anleg3" class="leg"></span></div>
                         <div id="choc"></div>
-                        <p class="mu ocnote">Number of bookings per room type in the month: approved and completed reservations with at least one night in the month (a stay that crosses a month end counts in both months). Nights = the nights that fall in the month.</p>
                     </div>
                 </div>
             </section>

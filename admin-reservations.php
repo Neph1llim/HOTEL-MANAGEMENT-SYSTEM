@@ -1,7 +1,6 @@
 <?php
 $page = 'reservations';
 $title = 'Reservations';
-$sub = 'All bookings with balances, cancellations and refunds.';
 require __DIR__ . '/admin-top.php';
 ?>
             <div class="sh toolbar">
