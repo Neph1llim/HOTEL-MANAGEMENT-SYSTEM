@@ -2736,3 +2736,17 @@ footer.foot::before {
         width: auto
     }
 }
+
+/* ---- payment page: same font and spacing as the reservation page; action buttons ---- */
+.paycard, .paycard label, .paycard input, .paycard .callout { font-family: var(--bd) }
+.paycard h2 { font-size: 1.4rem; margin: 0 0 .2rem }
+.paycard .callout { font-size: 1rem; line-height: 1.6 }
+.paycard .callout b { font-weight: 600 }
+.paycard .paygrid { margin: 1.2rem 0 1.4rem }
+.paycard .payform { margin: 0 }
+.paycard .err:empty { display: none }
+.paytop { margin: 0 0 1rem }
+.payactions, .paycard > p:has(> a[href="reservations.php"]) { display: flex; justify-content: flex-end; align-items: center; gap: .6rem; flex-wrap: wrap; margin: 1.2rem 0 0 }
+@media(max-width:700px) {
+    .payactions .btn, .paycard > p:has(> a[href="reservations.php"]) .btn { width: 100%; text-align: center }
+}

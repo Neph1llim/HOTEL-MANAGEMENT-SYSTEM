@@ -10,7 +10,7 @@ $rooms = $pdo->query('SELECT id,name,type,rate,base_cap,max_cap FROM rooms WHERE
     </div>
 </section>
 <section id="make" class="wrap flowbody">
-    <p class="mu"><a href="reserve.php" data-t>← Back to Check availability</a></p>
+    <p><a class="btn gold sm" href="reserve.php" data-t>← Back to Check availability</a></p>
     <div class="mrgrid">
         <form id="mr" class="card mrform" novalidate autocomplete="off" data-rooms='<?= htmlspecialchars(json_encode($rooms), ENT_QUOTES) ?>'>
             <h2 data-t>Reservation information</h2>
@@ -46,6 +46,6 @@ $rooms = $pdo->query('SELECT id,name,type,rate,base_cap,max_cap FROM rooms WHERE
         <li data-t>No smoking: Smoking inside guest rooms is prohibited. Violations are fined ₱2,000.</li>
         <li data-t>Quiet hours: Keep noise low after 10:00 PM around the accommodation areas.</li>
     </ol>
-    <div class="row"><button class="btn" id="tcAgree" type="button" data-t>I agree</button><button class="btn ghost" id="cancelTc" type="button" data-t>Close</button></div>
+    <div class="row"><button class="btn gold" id="tcAgree" type="button" data-t>I agree</button><button class="btn ghost" id="cancelTc" type="button" data-t>Close</button></div>
 </dialog>
 <?php include 'foot.php'; ?>
