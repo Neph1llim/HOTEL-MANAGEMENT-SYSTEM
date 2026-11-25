@@ -105,14 +105,14 @@ case 'pay_revert': /* put a verified or rejected payment back to pending so it c
  notify($pdo,$r['guest_id'],"Your payment for reservation {$r['ref']} is back under review. The hotel will verify it shortly.");
  $pdo->commit();j(['ok'=>1]);
 case 'register':
- $pw=$_POST['pass']??'';
- if(!P('name')||!filter_var(P('email'),FILTER_VALIDATE_EMAIL)||strlen(P('phone'))<7||strlen($pw)<6)j(['error'=>'Fill in every field. The password needs at least 6 characters'],422);
+ $pw=$_POST['pass']??'';$fn=P('first_name');$ln=P('last_name');$nm=$fn.' '.$ln;
+ if($fn===''||$ln===''||mb_strlen($fn)>50||mb_strlen($ln)>50||!filter_var(P('email'),FILTER_VALIDATE_EMAIL)||strlen(P('phone'))<7||strlen($pw)<6)j(['error'=>'Fill in every field. The password needs at least 6 characters'],422);
  $s=$pdo->prepare('SELECT id,pass FROM guests WHERE email=?');$s->execute([P('email')]);$old=$s->fetch();
  if($old&&$old['pass'])j(['error'=>'That email is already registered'],409);
  if($old){ /* a walk-in guest the hotel already recorded with this email: attach the new login to that record so points carry over */
-  $pdo->prepare('UPDATE guests SET name=?,phone=?,pass=? WHERE id=?')->execute([P('name'),P('phone'),password_hash($pw,PASSWORD_DEFAULT),$old['id']]);$gid=$old['id'];
+  $pdo->prepare('UPDATE guests SET name=?,first_name=?,last_name=?,phone=?,pass=? WHERE id=?')->execute([$nm,$fn,$ln,P('phone'),password_hash($pw,PASSWORD_DEFAULT),$old['id']]);$gid=$old['id'];
  }else{
-  $pdo->prepare('INSERT INTO guests(name,email,phone,pass) VALUES(?,?,?,?)')->execute([P('name'),P('email'),P('phone'),password_hash($pw,PASSWORD_DEFAULT)]);$gid=$pdo->lastInsertId();}
+  $pdo->prepare('INSERT INTO guests(name,first_name,last_name,email,phone,pass) VALUES(?,?,?,?,?,?)')->execute([$nm,$fn,$ln,P('email'),P('phone'),password_hash($pw,PASSWORD_DEFAULT)]);$gid=$pdo->lastInsertId();}
  session_regenerate_id(true);$_SESSION['gid']=$gid;j(['ok'=>1]);
 case 'glogin':
  $s=$pdo->prepare('SELECT * FROM guests WHERE email=?');$s->execute([P('email')]);$u=$s->fetch();
@@ -121,8 +121,9 @@ case 'glogin':
 case 'glogout':unset($_SESSION['gid']);j(['ok'=>1]);
 case 'profile':
  $g=guest($pdo);if(!$g)j(['error'=>'Please log in'],401);
- if(!P('name')||strlen(P('phone'))<7)j(['error'=>'Enter a valid name and mobile number'],422);
- $pdo->prepare('UPDATE guests SET name=?,phone=? WHERE id=?')->execute([P('name'),P('phone'),$g['id']]);
+ $fn=P('first_name');$ln=P('last_name');
+ if($fn===''||$ln===''||mb_strlen($fn)>50||mb_strlen($ln)>50||strlen(P('phone'))<7)j(['error'=>'Enter your first name, last name and a valid mobile number'],422);
+ $pdo->prepare('UPDATE guests SET name=?,first_name=?,last_name=?,phone=? WHERE id=?')->execute([$fn.' '.$ln,$fn,$ln,P('phone'),$g['id']]);
  $np=$_POST['new_pass']??'';
  if($np!==''){if(!password_verify($_POST['cur_pass']??'',$g['pass']))j(['error'=>'Current password is wrong'],422);if(strlen($np)<6)j(['error'=>'New password needs at least 6 characters'],422);
   $pdo->prepare('UPDATE guests SET pass=? WHERE id=?')->execute([password_hash($np,PASSWORD_DEFAULT),$g['id']]);}
@@ -153,16 +154,21 @@ case 'cancel_booking':
  $pdo->commit();j(['ok'=>1,'refundable'=>$c['refundable'],'refund'=>$refund]);
 case 'notes':
  $g=guest($pdo);if(!$g)j(['error'=>'Please log in'],401);
- $s=$pdo->prepare('SELECT id,msg,is_read,created_at FROM notifications WHERE guest_id=? ORDER BY id DESC LIMIT 30');$s->execute([$g['id']]);
+ $s=$pdo->prepare('SELECT id,msg,is_read,created_at FROM notifications WHERE guest_id=? ORDER BY id DESC LIMIT '.max(1,min(100,(int)(P('limit')?:30))));$s->execute([$g['id']]);
  j(['notes'=>$s->fetchAll()]);
 case 'notes_read':
  $g=guest($pdo);if(!$g)j(['error'=>'Please log in'],401);
- $pdo->prepare('UPDATE notifications SET is_read=1 WHERE guest_id=?')->execute([$g['id']]);j(['ok'=>1]);
+ $id=(int)P('id'); /* one notification when an id is sent, otherwise all of them */
+ $pdo->prepare('UPDATE notifications SET is_read=1 WHERE guest_id=?'.($id?' AND id=?':''))->execute($id?[$g['id'],$id]:[$g['id']]);
+ $u=$pdo->prepare('SELECT COUNT(*) FROM notifications WHERE guest_id=? AND is_read=0');$u->execute([$g['id']]);j(['ok'=>1,'unread'=>(int)$u->fetchColumn()]);
+case 'notes_count': /* unread total for the navbar bell */
+ $g=guest($pdo);if(!$g)j(['error'=>'Please log in'],401);
+ $u=$pdo->prepare('SELECT COUNT(*) FROM notifications WHERE guest_id=? AND is_read=0');$u->execute([$g['id']]);j(['unread'=>(int)$u->fetchColumn()]);
 case 'lookup':
  $g=guest($pdo);if(!$g)j(['error'=>'Please log in'],401);
  $v=$pdo->prepare('SELECT id,prize,kind,CONCAT("VCH-",id) code FROM vouchers WHERE guest_id=? AND status="unused"');$v->execute([$g['id']]);
  $u=$pdo->prepare('SELECT COUNT(*) c FROM notifications WHERE guest_id=? AND is_read=0');$u->execute([$g['id']]);
- j(['guest'=>['name'=>$g['name'],'email'=>$g['email'],'phone'=>$g['phone'],'points'=>(int)$g['points'],'vip'=>(int)$g['vip']],'vouchers'=>$v->fetchAll(),'unread'=>(int)$u->fetch()['c']]);
+ j(['guest'=>['name'=>$g['name'],'first_name'=>$g['first_name']??null,'last_name'=>$g['last_name']??null,'email'=>$g['email'],'phone'=>$g['phone'],'points'=>(int)$g['points'],'vip'=>(int)$g['vip']],'vouchers'=>$v->fetchAll(),'unread'=>(int)$u->fetch()['c']]);
 case 'wheel': /* public: the enabled rewards in wheel order, so the wheel on the Rewards page always matches Admin > Rewards */
  j(['prizes'=>wheelSlices(wheelPrizes($pdo))]);
 case 'spin':
@@ -179,6 +185,7 @@ case 'spin':
  $pdo->prepare('UPDATE guests SET points=points-?'.($p['base']=='vip'?',vip=1':'').' WHERE id=?')->execute([SPIN_COST,$g['id']]);
  /* the voucher keeps its own copy of what it is worth (name, discount, room, nights), so editing or deleting the reward later never changes vouchers already won */
  if($p['base']!='vip'){$fr=$p['base']=='free_room';$pdo->prepare('INSERT INTO vouchers(guest_id,prize,kind,pct,room_id,room_type,nights) VALUES(?,?,?,?,?,?,?)')->execute([$g['id'],$p['label'],$p['base'],$p['base']=='pct'?(int)$p['pct']:0,$fr?$p['room_id']:null,$fr?$p['room_type']:null,$fr?(int)$p['nights']:2]);}
+ notify($pdo,$g['id'],$p['base']=='vip'?'Congratulations! You won VIP status: '.$p['label'].'.':'You spun the rewards wheel and won: '.$p['label'].'. Find it under My Vouchers.');
  $pdo->commit();j(['index'=>$i,'prize'=>$p['label'],'points'=>$pts-SPIN_COST,'prizes'=>wheelSlices($pr)]);
 
 case 'mini_status': case 'mini_start': case 'mini_claim': /* daily minigames 'toss' and 'catch': 1 claim per game per day, max 5 points each */
@@ -203,6 +210,7 @@ case 'mini_status': case 'mini_start': case 'mini_claim': /* daily minigames 'to
  if($c->fetch()){$pdo->rollBack();j(['error'=>'You already claimed this game today. Come back tomorrow'],422);}
  $pdo->prepare('INSERT INTO minigame_claims(guest_id,game,day,points) VALUES(?,?,CURDATE(),?)')->execute([$g['id'],$gm,$pts]);
  $pdo->prepare('UPDATE guests SET points=points+? WHERE id=?')->execute([$pts,$g['id']]);
+ notify($pdo,$g['id'],'You earned '.$pts.' point'.($pts>1?'s':'').' from '.($gm=='toss'?'Golden Token Toss':'Resort Harvest Catch').' today.');
  $pdo->commit();j(['points'=>$pts,'total'=>$have+$pts]);
 
 /* ================= staff ================= */
