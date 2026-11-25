@@ -1,7 +1,6 @@
 <?php
 $page = 'walkin';
 $title = 'Walk-in booking';
-$sub = 'For a guest at the front desk. The booking is approved straight away and the downpayment is recorded as cash received.';
 require __DIR__ . '/admin-top.php';
 ?>
             <form id="wf" class="panel wform"><label>Guest name<input name="name" required

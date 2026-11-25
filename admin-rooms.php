@@ -1,7 +1,6 @@
 <?php
 $page = 'rooms';
 $title = 'Rooms & Rates';
-$sub = 'Edit any rows, then press Save All Changes once to save them together. A new rate applies to future bookings only; existing reservations keep the price they were made at. Switch a room off to stop new online bookings (for maintenance, say).';
 require __DIR__ . '/admin-top.php';
 ?>
             <div class="panel tw">

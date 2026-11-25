@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS rooms (
 CREATE TABLE IF NOT EXISTS guests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(80),
+    first_name VARCHAR(50) NULL,
+    last_name VARCHAR(50) NULL,
     email VARCHAR(100) UNIQUE,
     phone VARCHAR(30),
     pass VARCHAR(255),

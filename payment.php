@@ -18,6 +18,8 @@ if ($r) {
     $rej = $s->fetchColumn();
 }
 $e = fn($v) => htmlspecialchars((string) $v);
+/* back button returns to the reservation form with the same room, dates and guests filled in */
+$back = 'make-reservation.php' . ($r ? '?' . http_build_query(['room' => $r['room_id'], 'ci' => $r['checkin'], 'co' => $r['checkout'], 'pax' => $r['pax']]) : '');
 $bodyClass = 'flow';
 include 'head.php'; ?>
 <section class="flowhero">
@@ -28,12 +30,14 @@ include 'head.php'; ?>
     </div>
 </section>
 <section class="wrap flowbody narrowflow">
+    <p class="paytop"><a class="btn gold sm" href="<?= $e($back) ?>" data-t>← Back to reservation</a></p>
 <?php if (!$r): ?>
     <div class="callout err"><b data-t>Reservation not found.</b> <a href="make-reservation.php" data-t>Make a new reservation</a></div>
 <?php elseif ($r['status'] == 'cancelled'): ?>
     <div class="callout err"><b data-t>This reservation was cancelled, so it can no longer be paid.</b> <a href="make-reservation.php" data-t>Make a new reservation</a></div>
 <?php elseif ($r['status'] != 'pending'): ?>
-    <div class="callout ok"><b data-t>This reservation is already paid and confirmed.</b> <a href="reservations.php" data-t>View my reservations</a></div>
+    <div class="callout ok"><b data-t>This reservation is already paid and confirmed.</b></div>
+    <p class="payactions"><a class="btn" href="reservations.php" data-t>View my reservations</a></p>
 <?php else:
     $exp = date('M j, g:i A', strtotime(max($r['created_at'], (string) $rej)) + HOLD_HOURS * 3600); ?>
     <div class="card paycard pay">
@@ -51,7 +55,7 @@ include 'head.php'; ?>
                 </div>
                 <?php if ($rej): ?><div class="callout err" data-t>Your last proof was rejected. Please upload a clear proof of payment.</div><?php endif; ?>
                 <?php if ($pending): ?>
-                    <div class="callout warn"><span data-t>Your payment is already waiting to be verified.</span> <a href="reservations.php" data-t>View my reservations</a></div>
+                    <div class="callout warn"><span data-t>Your payment is already waiting to be verified.</span></div>
                 <?php else: ?>
                     <div class="callout warn"><span data-t>Pay before</span> <?= $e($exp) ?> <span data-t>or the room will be released.</span></div>
                 <?php endif; ?>
@@ -65,6 +69,8 @@ include 'head.php'; ?>
             <button class="btn full" data-t>Submit payment</button>
         </form>
         <p class="err"></p>
+        <?php else: ?>
+        <p class="payactions"><a class="btn" href="reservations.php" data-t>View my reservations</a></p>
         <?php endif; ?>
     </div>
 <?php endif; ?>
