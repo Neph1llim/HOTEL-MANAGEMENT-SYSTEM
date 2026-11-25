@@ -1,7 +1,7 @@
 -- Bella Vista DEMO DATA. phpMyAdmin > bellavista > Import > this file > Go.
 -- Only adds rows, so run it on a freshly imported (or cleared) database. To restart the demo later, import reset-demo.sql.
 -- Demo logins: admin / admin123  |  maria@demo.com, juan@demo.com, carlo@demo.com, ana@demo.com, liza@demo.com / guest123
--- Needs the minigame_claims table first (it is in the updated database.sql, or run minigame_claims.sql).
+-- Needs the tables from database.sql first (including minigame_claims).
 -- MINIGAME DEMO (Rewards page > Daily minigames, 1 claim per game per day, max 5 points each):
 --   juan@demo.com   95 points, nothing claimed today: play and claim a game and he reaches 100, so the Spin button unlocks.
 --   maria@demo.com  128 points, claimed both games YESTERDAY only: both games are playable today (yesterday does not count).
