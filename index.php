@@ -60,7 +60,7 @@ foreach ($pdo->query('SELECT type,MIN(rate) r FROM rooms WHERE active=1 GROUP BY
     <h2 data-t data-morph="text">Gallery</h2>
     <div class="gal">
         <?php 
-        $gallery= ["pool", "room-b", "room-c", "entrance-event hall", "Hotel", "event-hall"]; // add dito yung names ng pics
+        $gallery= ["pool", "room-b", "room-c", "entrance-event-hall", "Hotel", "event-hall"]; // add dito yung names ng pics
         for ($i = 1; $i <= 6; $i++)
             echo "<div data-morph=\"tile\" data-o=\"" . (($i - 1) % 3) . "\" style=\"background-image:url(assets/img/" . $gallery[$i - 1] . ".png),linear-gradient(135deg,var(--emerald),var(--gold-lo))\"></div>"; ?>
     </div>
