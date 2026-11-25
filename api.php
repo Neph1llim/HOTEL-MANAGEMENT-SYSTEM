@@ -172,6 +172,30 @@ case 'spin':
  if($p[1]!='vip')$pdo->prepare('INSERT INTO vouchers(guest_id,prize,kind,pct) VALUES(?,?,?,?)')->execute([$g['id'],$p[0],$p[1],$p[2]]);
  $pdo->commit();j(['index'=>$i,'prize'=>$p[0],'points'=>$pts-SPIN_COST]);
 
+case 'mini_status': case 'mini_start': case 'mini_claim': /* daily minigames 'toss' and 'catch': 1 claim per game per day, max 5 points each */
+ $g=guest($pdo);if(!$g)j(['error'=>'Please log in'],401);
+ $s=$pdo->prepare('SELECT COUNT(*) FROM reservations WHERE guest_id=? AND status="completed"');$s->execute([$g['id']]);$ok=(int)$s->fetchColumn()>0;
+ $s=$pdo->prepare('SELECT game,points FROM minigame_claims WHERE guest_id=? AND day=CURDATE()');$s->execute([$g['id']]);
+ $done=['toss'=>0,'catch'=>0];foreach($s->fetchAll() as $x)$done[$x['game']]=(int)$x['points'];
+ if($a=='mini_status')j(['eligible'=>$ok,'claimed'=>$done,'cap'=>5]);
+ $gm=P('game');if(!isset($done[$gm]))j(['error'=>'Unknown game'],422);
+ if(!$ok)j(['error'=>'Complete a stay to earn points from minigames'],403);
+ if($done[$gm])j(['error'=>'You already claimed this game today. Come back tomorrow'],422);
+ if($a=='mini_start'){$_SESSION['mini'][$gm]=microtime(true);j(['ok'=>1]);}
+ /* mini_claim: a round must have been started and fully played (18 s) */
+ $t=$_SESSION['mini'][$gm]??0;unset($_SESSION['mini'][$gm]);$el=microtime(true)-$t;
+ if(!$t||$el<16||$el>600)j(['error'=>'Play a full round first'],422);
+ $sc=max(0,min(60,(int)P('score')));
+ $pts=min(5,$gm=='toss'?$sc:intdiv($sc,3)); /* toss: 1 point per basket. catch: 1 point per 3 score. both capped at 5 */
+ if($pts<1)j(['error'=>'Score too low to earn points. Play again!'],422);
+ $pdo->beginTransaction();
+ $s=$pdo->prepare('SELECT points FROM guests WHERE id=? FOR UPDATE');$s->execute([$g['id']]);$have=(int)$s->fetch()['points'];
+ $c=$pdo->prepare('SELECT 1 FROM minigame_claims WHERE guest_id=? AND game=? AND day=CURDATE()');$c->execute([$g['id'],$gm]);
+ if($c->fetch()){$pdo->rollBack();j(['error'=>'You already claimed this game today. Come back tomorrow'],422);}
+ $pdo->prepare('INSERT INTO minigame_claims(guest_id,game,day,points) VALUES(?,?,CURDATE(),?)')->execute([$g['id'],$gm,$pts]);
+ $pdo->prepare('UPDATE guests SET points=points+? WHERE id=?')->execute([$pts,$g['id']]);
+ $pdo->commit();j(['points'=>$pts,'total'=>$have+$pts]);
+
 /* ================= staff ================= */
 case 'login':
  $s=$pdo->prepare('SELECT * FROM admins WHERE username=?');$s->execute([P('user')]);$u=$s->fetch();
