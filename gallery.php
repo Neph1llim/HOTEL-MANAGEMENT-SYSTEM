@@ -48,7 +48,7 @@ $galleryImages = [
         'alt' => 'Outdoor swimming pool surrounded by greenery',
     ],
     [
-        'file' => 'assets/img/entrance-event-hall.png',
+        'file' => 'assets/img/entrance-event-hall1.png',
         'category' => 'exterior',
         'categoryLabel' => 'Hotel & Grounds',
         'title' => 'Event Hall Entrance',
