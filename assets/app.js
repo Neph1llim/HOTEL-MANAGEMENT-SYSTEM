@@ -123,7 +123,7 @@ if (bf) {
   const syncRoomList = () => {
     const sel = $('#croom'); if (!calData) return; const keep = calRoom;
     sel.length = 1; sel.options[0].textContent = t('All rooms (rooms free)');
-    calData.rooms.filter(r => !freeIds || freeIds.has(+r.id)).forEach(r => sel.add(new Option(r.name, r.id)));
+    calData.rooms.forEach(r => sel.add(new Option(r.name, r.id)));
     if (keep && ![...sel.options].some(o => o.value == keep)) calRoom = ''; sel.value = calRoom
   };
   async function search() {
@@ -131,7 +131,7 @@ if (bf) {
     if (!bf.ci.value || !bf.co.value || bf.co.value <= bf.ci.value || !bf.pax.value) { freeIds = null; box.innerHTML = ''; syncRoomList(); drawCal(); return }
     const r = await post('search', fd()); if (my != seq) return;
     if (r.error) { freeIds = null; box.innerHTML = `<p class="err" data-t>${esc(r.error)}</p>`; applyLang(); syncRoomList(); drawCal(); return }
-    const open = r.rooms.filter(q => q.free);                       /* full rooms are hidden */
+    const open = r.rooms.filter(q => q.free && (!calRoom || q.room.id == calRoom));   /* full rooms hidden; the Room dropdown picks which room(s) show */
     freeIds = new Set(open.map(q => +q.room.id));
     box.innerHTML = open.length ? open.map(q => {
       const ok = !q.error, n = esc(q.room.name); return `<article class="card"><div class="rimg"><span>${n}</span><img src="assets/img/${slug(q.room.name)}.jpg" alt="${n}" onerror="this.remove()"></div><h3>${n}</h3>` + (ok ?
@@ -167,7 +167,7 @@ if (bf) {
   const loadCal = async () => { calData = await post('calendar', { month: calMonth }); syncRoomList(); drawCal() };
   $('#cprev').onclick = () => { const [y, m] = calMonth.split('-').map(Number); calMonth = ymd(new Date(y, m - 2, 1)).slice(0, 7); loadCal() };
   $('#cnext').onclick = () => { const [y, m] = calMonth.split('-').map(Number); calMonth = ymd(new Date(y, m, 1)).slice(0, 7); loadCal() };
-  $('#croom').onchange = e => { calRoom = e.target.value; drawCal() };
+  $('#croom').onchange = e => { calRoom = e.target.value; drawCal(); search() };
   /* press on the check-in date, hold and drag to the check-out date, release */
   const dayAt = (x, y) => { const el = document.elementFromPoint(x, y), b = el && el.closest('[data-day]'); return b && !b.disabled ? b.dataset.day : null };
   const cal = $('#cal');
