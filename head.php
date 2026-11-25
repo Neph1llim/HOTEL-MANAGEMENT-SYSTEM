@@ -30,7 +30,7 @@
 
 <body<?= isset($bodyClass) ? ' class="' . $bodyClass . '"' : '' ?>>
     <header class="top"><a class="brand" href="index.php"><img src="assets/img/logo.png" alt="" width="52" height="46"><span>Bella Vista<small>Hotel &amp; Events Place</small></span></a>
-        <nav><a href="index.php" data-t>Home</a><a href="index.php#about-us" data-t>About us</a><a href="policies.php" data-t>Policies</a><a href="rooms.php" data-t>Rooms</a><a href="reserve.php"
+        <nav><a href="index.php" data-t>Home</a><a href="gallery.php" data-t>Gallery</a><a href="policies.php" data-t>Policies</a><a href="rooms.php" data-t>Rooms</a><a href="reserve.php"
                 data-t>Book now</a><a href="rewards.php" data-t>Rewards</a></nav>
         <div class="tools"><button id="lang" aria-label="Language">TL</button><button id="theme"
                 aria-label="Theme">&#9790;</button><?php if (!defined('ADMIN')):
