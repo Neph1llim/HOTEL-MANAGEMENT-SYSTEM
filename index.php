@@ -20,7 +20,7 @@ foreach ($pdo->query('SELECT type,MIN(rate) r FROM rooms WHERE active=1 GROUP BY
             <p data-t>Bella Vista Hotel & Events Place is a premier eco-chic boutique hotel and events destination at the scenic foothills of the mountains. It offers a tranquil, elegant and exclusive retreat for families, tourists and corporate clients, away from the hustle and bustle of the city.</p>
             <a class="btn ghost sm" href="rooms.php" data-t>See our rooms</a>
         </div>
-        <div class="photo" data-morph="photo" role="img" aria-label="Bella Vista Hotel" style="background-image:url(assets/img/about.jpg),url(assets/img/g1.jpg),linear-gradient(135deg,var(--emerald),var(--gold-lo))"></div>
+        <div class="photo" data-morph="photo" role="img" aria-label="Bella Vista Hotel" style="background-image:url(assets/img/about.png),linear-gradient(135deg,var(--emerald),var(--gold-lo))"></div>
     </div>
     <div id="history" class="wrap altblock rev">
         <div class="alttext" data-morph="text">
@@ -29,7 +29,7 @@ foreach ($pdo->query('SELECT type,MIN(rate) r FROM rooms WHERE active=1 GROUP BY
             <p data-t>Established in 2021, Bella Vista began as an exclusive family-owned resthouse. Growing demand for intimate celebrations and restful getaways turned it into a boutique hotel and events venue, known for warm Filipino hospitality, picturesque views and top-tier service.</p>
             <a class="btn ghost sm" href="reserve.php" data-t>Book your stay</a>
         </div>
-        <div class="photo" data-morph="photo" role="img" aria-label="Bella Vista through the years" style="background-image:url(assets/img/history.jpg),url(assets/img/g2.jpg),linear-gradient(135deg,var(--acc),var(--pri))"></div>
+        <div class="photo" data-morph="photo" role="img" aria-label="Bella Vista through the years" style="background-image:url(assets/img/Hotel.png),url(assets/img/g2.png),linear-gradient(135deg,var(--acc),var(--pri))"></div>
     </div>
 </section>
 <section id="rooms" class="wrap">
@@ -59,8 +59,10 @@ foreach ($pdo->query('SELECT type,MIN(rate) r FROM rooms WHERE active=1 GROUP BY
 <section class="wrap">
     <h2 data-t data-morph="text">Gallery</h2>
     <div class="gal">
-        <?php for ($i = 1; $i <= 6; $i++)
-            echo "<div data-morph=\"tile\" data-o=\"" . (($i - 1) % 3) . "\" style=\"background-image:url(assets/img/g$i.jpg),linear-gradient(135deg,var(--emerald),var(--gold-lo))\"></div>"; ?>
+        <?php 
+        $gallery= ["pool", "room-b", "room-c", "entrance", "Hotel", "event-hall"]; // add dito yung names ng pics
+        for ($i = 1; $i <= 6; $i++)
+            echo "<div data-morph=\"tile\" data-o=\"" . (($i - 1) % 3) . "\" style=\"background-image:url(assets/img/" . $gallery[$i - 1] . ".png),linear-gradient(135deg,var(--emerald),var(--gold-lo))\"></div>"; ?>
     </div>
 </section>
 <section class="wrap">
