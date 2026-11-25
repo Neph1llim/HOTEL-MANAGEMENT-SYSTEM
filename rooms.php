@@ -12,10 +12,10 @@ $info = [
 // Keep the database-driven room IDs, rates, capacity, and reservation links intact.
 $imageFiles = [
     'room a' => 'room-a.png',
-    'room b' => 'room-b.png',
-    'room c' => 'room-c.png',
+    'room b' => 'room-bbb.png',
+    'room c' => 'room-a.png',
     'fr1' => 'fr1.png',
-    'fr2' => 'fr2.png',
+    'fr2' => 'fr2-copy.png',
     'fr3' => 'fr3.png',
     'event hall' => 'event-hall.png',
 ];
