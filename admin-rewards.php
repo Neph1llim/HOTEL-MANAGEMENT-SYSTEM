@@ -1,7 +1,6 @@
 <?php
 $page = 'rewards';
 $title = 'Rewards';
-$sub = 'Set how many points guests earn and manage the rewards on the spin wheel. Add, edit or remove rewards, then press Save Reward Settings once to save everything together. A free room reward names the room and the number of nights it covers. Reward types are managed at the bottom of this page. The number on a VIP status reward is the discount VIP guests get on every booking, and it changes as soon as you save. Changes apply to the next spin; vouchers guests already won are not affected.';
 require __DIR__ . '/admin-top.php';
 ?>
             <div id="rwp" class="panel wform compact">
@@ -29,10 +28,6 @@ require __DIR__ . '/admin-top.php';
                 <span id="rwmsg" class="err"></span>
             </div>
             <h2>Reward types</h2>
-            <p class="mu">A reward type is the kind of reward you pick in the Reward type list above. A <b>Discount voucher</b> type gives a % off, a
-                <b>Free room stay</b> type gives free nights in the room you choose for each reward (name the reward after the room and nights so guests can tell them apart), and a
-                <b>Free food</b> type gives a food voucher (name the reward after the food, such as &ldquo;Free breakfast for two&rdquo;).
-                You can rename any of them. Types save straight away (no need to press Save Reward Settings).</p>
             <div class="panel tw">
                 <table id="rtt"></table>
             </div>

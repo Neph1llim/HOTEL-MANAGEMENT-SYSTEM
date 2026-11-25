@@ -1900,7 +1900,9 @@ html {
 .panel.ancard {
     padding: .9rem 1rem .6rem
 }
-
+.panel.ancard.wide {
+  grid-column: span 2;
+}
 .anct {
     display: flex;
     justify-content: space-between;
@@ -2181,9 +2183,10 @@ tr.dirty td {
     grid-template-columns: repeat(var(--n), 9.5rem) auto;
     align-items: end;
     gap: .7rem .9rem;
-    width: fit-content;
+    width: 100%;
     max-width: 100%;
-    padding: .85rem 1rem
+    padding: .85rem 1rem;
+    margin-bottom: 25px;
 }
 
 .wform.compact .wfh {
@@ -2735,4 +2738,152 @@ footer.foot::before {
     .fc-label {
         width: auto
     }
+}
+
+/* ---- payment page: same font and spacing as the reservation page; action buttons ---- */
+.paycard, .paycard label, .paycard input, .paycard .callout { font-family: var(--bd) }
+.paycard h2 { font-size: 1.4rem; margin: 0 0 .2rem }
+.paycard .callout { font-size: 1rem; line-height: 1.6 }
+.paycard .callout b { font-weight: 600 }
+.paycard .paygrid { margin: 1.2rem 0 1.4rem }
+.paycard .payform { margin: 0 }
+.paycard .err:empty { display: none }
+.paytop { margin: 0 0 1rem }
+.payactions, .paycard > p:has(> a[href="reservations.php"]) { display: flex; justify-content: flex-end; align-items: center; gap: .6rem; flex-wrap: wrap; margin: 1.2rem 0 0 }
+@media(max-width:700px) {
+    .payactions .btn, .paycard > p:has(> a[href="reservations.php"]) .btn { width: 100%; text-align: center }
+}
+
+/* ---- payment proof popup: X pinned top-right, tidy image box, only the "Open full size" button below ---- */
+#pfd {
+    position: fixed;
+    width: min(92vw, 460px);
+    max-width: none;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 20px
+}
+
+#pfd[open] {
+    display: flex;
+    flex-direction: column
+}
+
+#pfd .pfhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.1rem 1rem 1.4rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--gold-lo) 45%, var(--ln))
+}
+
+#pfd .pfhead h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.3;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+#pfd .pfx {
+    flex: 0 0 auto;
+    margin-left: auto;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--tx);
+    background: transparent;
+    border: 1px solid var(--ln);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease), transform .2s var(--ease)
+}
+
+#pfd .pfx:hover,
+#pfd .pfx:focus-visible {
+    background: var(--gold);
+    color: var(--forest-d);
+    border-color: var(--gold);
+    transform: rotate(90deg);
+    outline: none
+}
+
+#pfd .pfbox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.1rem 1.4rem;
+    overflow: auto;
+    max-height: 68vh
+}
+
+#pfd .pfbox img {
+    display: block;
+    max-width: 100%;
+    max-height: calc(68vh - 2.2rem);
+    height: auto;
+    border-radius: 12px;
+    border: 1px solid var(--ln);
+    box-shadow: 0 10px 30px -14px rgba(4, 14, 8, .6)
+}
+
+#pfd .pfbox img[hidden] {
+    display: none
+}
+
+/* the loading / failed lines stay out of sight unless the image really failed */
+#pfd .pfmsg,
+#pfd .pffail {
+    display: none;
+    margin: 0
+}
+
+#pfd .pfbox.failed .pffail {
+    display: block;
+    text-align: center;
+    padding: 2rem 0
+}
+
+#pfd .pfbox.loading {
+    min-height: 9rem
+}
+
+#pfd .pfbox.loading::after {
+    content: "";
+    width: 1.6rem;
+    height: 1.6rem;
+    border: 3px solid var(--ln);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: pfspin .8s linear infinite
+}
+
+@keyframes pfspin {
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+/* ---- admin tables: a thin line between columns ---- */
+.admbody table th,
+.admbody table td {
+    border-right: 1px solid color-mix(in srgb, var(--gold-lo) 22%, var(--ln))
+}
+
+.admbody table th:last-child,
+.admbody table td:last-child {
+    border-right: 0
+}
+
+/* proof popup: no footer button, so the image box carries the bottom padding */
+#pfd .pfbox {
+    padding-bottom: 1.4rem
 }

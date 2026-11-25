@@ -185,4 +185,98 @@ include 'head.php'; ?>
   mount('toss', toss); mount('catch', harvest); refresh();
 })();
 </script>
+<!-- ===== Spin celebration modal (scoped to rewards.php) ===== -->
+<div id="pzModal" class="pzOv" hidden role="dialog" aria-modal="true" aria-labelledby="pzTitle">
+    <canvas id="pzConfetti" aria-hidden="true"></canvas>
+    <div class="pzCard">
+        <div class="pzStar" aria-hidden="true">✦</div>
+        <h2 id="pzTitle">Congratulations!</h2>
+        <p class="pzSub">You won</p>
+        <p class="pzPrize" id="pzPrize"></p>
+        <button type="button" class="pzBtn" id="pzClose">Awesome!</button>
+    </div>
+</div>
+<style>
+    .pzOv { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; padding: 1rem; background: rgba(5, 18, 10, .78); backdrop-filter: blur(3px); animation: pzFade .25s ease-out }
+    .pzOv[hidden] { display: none }
+    #pzConfetti { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none }
+    .pzCard { position: relative; width: min(92vw, 400px); text-align: center; color: #F5F2EB; background: radial-gradient(120% 90% at 50% 0, #14402a, #0A2214 70%); border: 2px solid #D4AF37; border-radius: 20px; padding: 2rem 1.5rem 1.6rem; box-shadow: 0 0 0 6px rgba(212, 175, 55, .18), 0 24px 60px rgba(0, 0, 0, .55); animation: pzPop .55s cubic-bezier(.2, 1.4, .4, 1) both }
+    .pzCard::before { content: ""; position: absolute; inset: 8px; border: 1px solid rgba(245, 242, 235, .28); border-radius: 14px; pointer-events: none }
+    .pzStar { font-size: 2.2rem; line-height: 1; color: #D4AF37; text-shadow: 0 0 18px rgba(212, 175, 55, .8) }
+    .pzCard h2 { margin: .4rem 0 .2rem; font-size: clamp(1.7rem, 7vw, 2.2rem); color: #D4AF37 }
+    .pzSub { margin: 0; opacity: .85; letter-spacing: .08em; text-transform: uppercase; font-size: .85rem }
+    .pzPrize { margin: .9rem 0 1.3rem; padding: .9rem 1rem; font-size: 1.35rem; font-weight: 700; line-height: 1.3; color: #F5F2EB; border: 1.5px solid #D4AF37; border-radius: 12px; background: rgba(212, 175, 55, .12) }
+    .pzBtn { font: inherit; font-weight: 700; cursor: pointer; border: 0; border-radius: 12px; padding: .8rem 2.2rem; color: #0A2214; background: linear-gradient(135deg, #F1DA8C, #D4AF37) }
+    .pzBtn:hover { filter: brightness(1.08) }
+    .pzBtn:focus-visible { outline: 3px solid #F5F2EB; outline-offset: 3px }
+    @keyframes pzPop { 0% { opacity: 0; transform: scale(.55) translateY(20px) } 70% { opacity: 1; transform: scale(1.06) } 100% { transform: scale(1) } }
+    @keyframes pzFade { from { opacity: 0 } to { opacity: 1 } }
+    @media (prefers-reduced-motion: reduce) { .pzOv, .pzCard { animation: none } }
+</style>
+<script>
+(() => {
+  const $ = s => document.querySelector(s), tr = s => (typeof t == 'function' ? (t(s) || s) : s);
+  const modal = $('#pzModal'), cv = $('#pzConfetti'), win = $('#win');
+  if (!modal || !win) return;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let prize = '', last = '', raf = 0, opener = null;
+
+  /* the server's exact prize name, read from the spin response (display only, nothing is changed) */
+  const f0 = window.fetch;
+  window.fetch = function (u, o) {
+    const p = f0.apply(this, arguments);
+    try {
+      const b = o && o.body, hit = b instanceof FormData ? b.get('a') == 'spin' : /\bspin\b/.test(String(b || ''));
+      if (hit) p.then(r => r.clone().json()).then(j => { if (j && j.prize) prize = j.prize }).catch(() => { })
+    } catch (e) { }
+    return p
+  };
+
+  /* ---------- confetti: gold and cream pieces falling behind the card ---------- */
+  const COLORS = ['#D4AF37', '#F1DA8C', '#B8922A', '#F5F2EB', '#FFFFFF', '#E8D9A8'];
+  function confetti() {
+    cancelAnimationFrame(raf); if (reduce) return;
+    const dpr = Math.min(2, devicePixelRatio || 1), W = innerWidth, H = innerHeight, c = cv.getContext('2d');
+    cv.width = W * dpr; cv.height = H * dpr; c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = W < 500 ? 110 : 190, parts = Array.from({ length: n }, () => ({
+      x: Math.random() * W, y: -20 - Math.random() * H * .6, w: 6 + Math.random() * 7, h: 9 + Math.random() * 9,
+      vy: 140 + Math.random() * 190, vx: -40 + Math.random() * 80, sw: Math.random() * 6, sa: 20 + Math.random() * 40,
+      r: Math.random() * 6, vr: -5 + Math.random() * 10, col: COLORS[Math.random() * COLORS.length | 0], dot: Math.random() < .3
+    }));
+    let last = performance.now();
+    const loop = now => {
+      const dt = Math.min(.04, (now - last) / 1000); last = now; c.clearRect(0, 0, W, H); let alive = 0;
+      for (const p of parts) {
+        p.y += p.vy * dt; p.sw += dt * 3; p.x += p.vx * dt + Math.sin(p.sw) * p.sa * dt; p.r += p.vr * dt;
+        if (p.y < H + 30) alive++; else continue;
+        c.save(); c.translate(p.x, p.y); c.rotate(p.r); c.fillStyle = p.col; c.globalAlpha = .95;
+        if (p.dot) { c.beginPath(); c.arc(0, 0, p.w / 2, 0, 7); c.fill() } else c.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.sw)) + 2);
+        c.restore()
+      }
+      if (alive) raf = requestAnimationFrame(loop); else c.clearRect(0, 0, W, H)
+    };
+    raf = requestAnimationFrame(loop)
+  }
+
+  /* ---------- open / close ---------- */
+  function open(text) {
+    $('#pzTitle').textContent = tr('Congratulations!'); $('#pzPrize').textContent = text;
+    opener = document.activeElement; modal.hidden = false; document.body.style.overflow = 'hidden';
+    $('#pzClose').focus(); confetti()
+  }
+  function close() {
+    modal.hidden = true; document.body.style.overflow = ''; cancelAnimationFrame(raf);
+    cv.getContext('2d').clearRect(0, 0, cv.width, cv.height); if (opener && opener.focus) opener.focus()
+  }
+  $('#pzClose').onclick = close;
+  modal.addEventListener('click', e => { if (e.target == modal) close() });
+  addEventListener('keydown', e => { if (!modal.hidden && e.key == 'Escape') close() });
+
+  /* the wheel script writes the result into #win only after the wheel has stopped (and clears it when a spin starts) */
+  new MutationObserver(() => {
+    const txt = win.textContent.trim(); if (txt == last) return; last = txt;
+    if (txt) { open(prize || txt); prize = '' }
+  }).observe(win, { childList: true, characterData: true, subtree: true });
+})();
+</script>
 <?php include 'foot.php'; ?>
