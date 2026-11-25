@@ -181,7 +181,7 @@ if (bf) {
     let [lo, hi] = range(); drag = null;
     if (e.type == 'pointercancel') { drawCal(); return }
     if (hi == lo) hi = addDays(lo, 1);                /* a plain tap books one night */
-    bf.ci.value = lo; bf.co.value = hi; bf.co.min = lo; drawCal(); search(); bf.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    bf.ci.value = lo; bf.co.value = hi; bf.co.min = lo; drawCal(); search(); ($('#rhint') || bf).scrollIntoView({ behavior: 'smooth', block: 'start' })
   };
   cal.addEventListener('pointerup', finish); cal.addEventListener('pointercancel', finish);
   cal.addEventListener('dragstart', e => e.preventDefault());
