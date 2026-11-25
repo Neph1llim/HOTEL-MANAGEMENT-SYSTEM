@@ -31,6 +31,9 @@ CREATE TABLE IF NOT EXISTS vouchers (
     prize VARCHAR(60),
     kind VARCHAR(20),
     pct INT DEFAULT 0,
+    room_id INT NULL,
+    room_type VARCHAR(10) NULL,
+    nights TINYINT DEFAULT 2,
     status ENUM ('unused', 'used') DEFAULT 'unused',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (guest_id) REFERENCES guests (id)
@@ -90,6 +93,33 @@ CREATE TABLE IF NOT EXISTS admins (
     pass VARCHAR(255)
 );
 
+CREATE TABLE IF NOT EXISTS settings (
+    k VARCHAR(40) PRIMARY KEY,
+    v VARCHAR(255)
+);
+
+-- Reward types (Admin > Rewards > Reward types). base = what the type does: pct (discount voucher), free_room (free nights in a room), vip (VIP status), free_food (food voucher).
+CREATE TABLE IF NOT EXISTS reward_types (
+    code VARCHAR(20) PRIMARY KEY,
+    label VARCHAR(60),
+    base VARCHAR(10),
+    builtin TINYINT DEFAULT 0
+);
+
+-- Wheel rewards. For a free_room reward: room_id = one specific room, or room_type = any room of that type
+-- ('standard' / 'family'), or both NULL = any Standard or Family room; nights = how many free nights.
+CREATE TABLE IF NOT EXISTS wheel_prizes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    label VARCHAR(60),
+    kind VARCHAR(20),
+    pct INT DEFAULT 0,
+    room_id INT NULL,
+    room_type VARCHAR(10) NULL,
+    nights TINYINT DEFAULT 2,
+    chance DECIMAL(5, 2) DEFAULT 0,
+    active TINYINT DEFAULT 1
+);
+
 -- Default rooms (only added when the rooms table is empty)
 INSERT INTO rooms (name, type, rate, base_cap, max_cap, active)
 SELECT * FROM (
@@ -102,6 +132,31 @@ SELECT * FROM (
     SELECT 'Event Hall', 'hall', 15000, 30, 40, 1
 ) AS default_rooms
 WHERE NOT EXISTS (SELECT 1 FROM rooms);
+
+-- Points rate (% of a completed stay's total awarded as points). Edit it in Admin > Rewards.
+INSERT IGNORE INTO settings (k, v) VALUES ('points_percent', '1');
+
+-- Built-in reward types (they cannot be deleted; add or rename types in Admin > Rewards)
+INSERT IGNORE INTO reward_types (code, label, base, builtin) VALUES
+    ('pct', 'Discount voucher (% off)', 'pct', 1),
+    ('free_room', 'Free room stay', 'free_room', 1),
+    ('vip', 'VIP status', 'vip', 1),
+    ('free_food', 'Free food', 'free_food', 1);
+
+-- Discount (%) that VIP guests get on every booking. Edit it in Admin > Rewards (the number on the VIP status reward).
+INSERT IGNORE INTO settings (k, v) VALUES ('vip_percent', '5');
+
+-- Default wheel rewards (only added when the table is empty). Add, edit or remove them in Admin > Rewards.
+INSERT INTO wheel_prizes (label, kind, pct, room_type, nights, chance, active)
+SELECT * FROM (
+    SELECT '20% discount voucher', 'pct', 20, NULL, 2, 50, 1 UNION ALL
+    SELECT '50% discount voucher', 'pct', 50, NULL, 2, 30, 1 UNION ALL
+    SELECT '75% discount voucher + meal stubs', 'pct', 75, NULL, 2, 12.5, 1 UNION ALL
+    SELECT 'Free Standard Room, 2 nights', 'free_room', 0, 'standard', 2, 5, 1 UNION ALL
+    SELECT 'Free Family Room, 2 nights', 'free_room', 0, 'family', 2, 2.4, 1 UNION ALL
+    SELECT 'VIP status (5% off every booking)', 'vip', 5, NULL, 2, 0.1, 1
+) AS default_prizes
+WHERE NOT EXISTS (SELECT 1 FROM wheel_prizes);
 
 -- Default admin: admin / admin123 (change the password after first login)
 INSERT IGNORE INTO admins (username, pass)

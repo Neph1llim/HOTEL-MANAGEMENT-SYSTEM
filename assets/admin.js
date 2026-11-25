@@ -115,8 +115,8 @@ if ($('#dash')) {
     };
     const drawRooms = () => {
         if (roomsDirty || !$('#rooms')) return;
-        $('#rooms').innerHTML = '<thead><tr><th>Name</th><th>Type</th><th>Today</th><th>Upcoming</th><th>Rate (₱/night)</th><th>Std cap</th><th>Max cap</th><th>On website</th><th></th></tr></thead><tbody>' +
-            ROOMS.map(m => `<tr data-room="${m.id}"><td><input class="in" name="name" value="${esc(m.name)}" maxlength="30"></td><td class="cap">${m.type}</td><td><span class="s ${m.occ > 0 ? 'cancelled' : 'approved'}">${m.occ > 0 ? 'Occupied' : 'Available'}</span></td><td>${m.upcoming}</td><td><input class="in num" type="number" name="rate" min="1" value="${m.rate}"></td><td><input class="in num" type="number" name="base_cap" min="1" value="${m.base_cap}"></td><td><input class="in num" type="number" name="max_cap" min="1" value="${m.max_cap}"></td><td><input type="checkbox" name="active" ${+m.active ? 'checked' : ''} aria-label="Show on website"></td><td>${acts(`<button class="btn sm ghost danger" type="button" data-del="${m.id}">Delete Room</button>`)}</td></tr>`).join('') + '</tbody>';
+        $('#rooms').innerHTML = '<thead><tr><th>Name</th><th>Type</th><th>Today</th><th>Upcoming</th><th>Rate (₱/night)</th><th>Standard Capacity</th><th>Maximum Capacity</th><th>Show on Website</th><th></th></tr></thead><tbody>' +
+            ROOMS.map(m => `<tr data-room="${m.id}"><td><input class="in" name="name" value="${esc(m.name)}" maxlength="30"></td><td class="cap">${m.type}</td><td><span class="s ${m.occ > 0 ? 'cancelled' : 'approved'}">${m.occ > 0 ? 'Occupied' : 'Available'}</span></td><td>${m.upcoming}</td><td><input class="in num" type="number" name="rate" min="1" value="${m.rate}"></td><td><input class="in num" type="number" name="base_cap" min="1" value="${m.base_cap}"></td><td><input class="in num" type="number" name="max_cap" min="1" value="${m.max_cap}"></td><td><input type="checkbox" name="active" ${+m.active ? 'checked' : ''} aria-label="Show on Website"></td><td>${acts(`<button class="btn sm ghost danger" type="button" data-del="${m.id}">Delete Room</button>`)}</td></tr>`).join('') + '</tbody>';
         syncRooms()
     };
     const fillWalkSelect = () => {
@@ -139,7 +139,7 @@ if ($('#dash')) {
         if ($('#pays')) $('#pays').innerHTML = '<thead><tr><th>Ref</th><th>Guest</th><th>Type</th><th>Payment ref no.</th><th>Amount paid</th><th>Due</th><th>Proof</th><th>Status</th><th>Actions</th></tr></thead><tbody>' + (r.pays.map(p => `<tr><td>${p.ref}</td><td>${esc(p.guest)}<br><small class="mu">${contact(p)}</small></td><td>${payType(p)}${cashTag(p)}</td><td>${esc(p.ref_no)}</td><td>${peso(p.amount)}${shortTag(p)}</td><td>${p.kind == 'down' ? peso(p.downpayment) : '-'}</td><td>${proofCell(p)}</td><td><span class="s ${pc(p.status)}">${p.status}</span></td><td>${p.status == 'pending' ? reviewBtns(p) : acts(btn('rv', p.id, 'Revert to pending'))}</td></tr>`).join('') || `<tr><td colspan="9" class="mu">${SEARCH ? 'No payments match your search' : 'No payments submitted yet'}</td></tr>`) + '</tbody>';
         if ($('#ovpays')) drawOvPays(r.ov.pays);
         if ($('#ovres')) drawOvRes(r.ov.res);
-        drawRes(); drawRooms(); fillWalkSelect();
+        drawRes(); drawRooms(); fillWalkSelect(); if (window.loadRw) loadRw();
         if ($('#bytype')) { const mx = Math.max(1, ...r.byType.map(x => +x.rev));
         $('#bytype').innerHTML = r.byType.map(x => `<div class="bar"><span>${x.type}</span><i style="width:${x.rev / mx * 100}%"></i><b>${peso(x.rev)} <small class="mu">(${x.n})</small></b></div>`).join('') || '<p class="mu">No approved bookings this month</p>' }
         if ($('#chmonth')) drawCharts(r.yearly, r.month, r.now_month);
@@ -210,6 +210,179 @@ if ($('#dash')) {
         e.preventDefault(); if (roomsDirty && !confirm('You have unsaved changes in the table. Adding a room reloads it and they will be lost. Continue?')) return;
         const f = e.target, r = await post('room_add', Object.fromEntries(new FormData(f))); $('#rmsg').textContent = r.error || ''; if (!r.error) { f.reset(); roomsDirty = false; load() }
     };
+
+
+    /* rewards: points rate + wheel rewards + reward types.
+       Adding, editing and removing wheel rewards are staged in the table; ONE "Save Reward Settings" saves the points rate and the whole list together
+       (the server checks that the enabled rewards add up to exactly 100%). Reward types are saved straight away with their own buttons. */
+    if ($('#rwt')) {
+        const BASEL = { pct: 'Discount voucher (% off)', free_room: 'Free room stay (room + nights)', vip: 'VIP status (discount on every booking)', free_food: 'Free food (claimed at the front desk)' };
+        let W = [], BASE = '', BASEROWS = {}, KNOWN = [], MAXW = 8, MAXN = 30, TYPES = [], ROOMOPTS = [], uid = 0, rwDirty = false;
+        const baseOf = kind => (TYPES.find(t => t.code == kind) || {}).base || kind;
+        const roomOk = v => v == 'any' || v == 'standard' || v == 'family' || ROOMOPTS.some(m => String(m.id) == String(v));
+        const roomWord = v => v == 'standard' ? 'Standard Room' : v == 'family' ? 'Family Room' : v == 'any' ? 'Room' : ((ROOMOPTS.find(m => String(m.id) == String(v)) || {}).name || '');
+        /* suggested name for a free-room reward: it says WHICH room and HOW LONG, e.g. "Free Room A stay, 3 nights" or "Free Family Room, 2 nights" */
+        const autoName = r => {
+            if (baseOf(r.kind) != 'free_room' || !roomOk(r.room) || !(+r.nights >= 1)) return '';
+            const n = +r.nights, spec = !['any', 'standard', 'family'].includes(String(r.room));
+            return `Free ${roomWord(r.room)}${spec ? ' stay' : ''}, ${n} night${n == 1 ? '' : 's'}`
+        };
+        const norm = r => { const b = baseOf(r.kind); return { id: r.id, label: String(r.label).trim(), kind: r.kind, pct: b == 'pct' || b == 'vip' ? (+r.pct || 0) : 0, room: b == 'free_room' ? String(r.room || '') : 'any', nights: b == 'free_room' ? (+r.nights || 0) : 2, chance: +r.chance || 0, active: r.active ? 1 : 0 } };
+        const pctVal = () => $('#rwpct').value === '' ? 'x' : +$('#rwpct').value;
+        const rwSig = () => JSON.stringify(W.map(norm)) + '|' + pctVal();
+        const hund = r => Math.round((+r.chance || 0) * 100);
+        const fmtPct = h => String(+(h / 100).toFixed(2));
+        const typeOpts = sel => TYPES.map(t => `<option value="${esc(t.code)}"${t.code == sel ? ' selected' : ''}>${esc(t.label)}</option>`).join('');
+        const roomSelect = sel => (roomOk(sel) ? '' : '<option value="" selected>Choose a room...</option>') +
+            [['any', 'Any Standard or Family room'], ['standard', 'Any Standard room'], ['family', 'Any Family room']].map(o => `<option value="${o[0]}"${o[0] == sel ? ' selected' : ''}>${o[1]}</option>`).join('') +
+            (ROOMOPTS.length ? '<optgroup label="Specific room">' + ROOMOPTS.map(m => `<option value="${m.id}"${String(m.id) == String(sel) ? ' selected' : ''}>${esc(m.name)} (${m.type}${+m.active ? '' : ', closed'})</option>`).join('') + '</optgroup>' : '');
+        /* the "Details" cell depends on what the reward type does: a discount %, a room + number of nights, or nothing */
+        const detail = r => {
+            const b = baseOf(r.kind);
+            if (b == 'pct') return `<input class="in num" type="number" name="pct" min="1" max="100" step="1" value="${esc(r.pct)}" aria-label="Discount percent"> <span class="mu">% off</span>`;
+            if (b == 'vip') return `<input class="in num" type="number" name="pct" min="1" max="100" step="1" value="${esc(r.pct)}" aria-label="VIP discount percent"> <span class="mu">% off every booking</span>`;
+            if (b == 'free_food') return '<span class="mu">Name the food in the reward name</span>';
+            if (b == 'free_room') return `<div class="rwdet"><select class="in" name="room" aria-label="Room">${roomSelect(r.room)}</select><span class="rwn"><input class="in num" type="number" name="nights" min="1" max="${MAXN}" step="1" value="${esc(r.nights)}" aria-label="Free nights"> night(s)</span></div>`;
+            return '<span class="mu">No extra settings</span>'
+        };
+        const rwRow = r => `<tr data-k="${r.k}"><td><input class="in" name="label" value="${esc(r.label)}" maxlength="60" aria-label="Reward name"></td><td><select class="in" name="kind" aria-label="Reward type">${typeOpts(r.kind)}</select></td><td>${detail(r)}</td><td><input class="in num" type="number" name="chance" min="0" max="100" step="0.01" value="${esc(+r.chance)}" aria-label="Probability percent"></td><td><input type="checkbox" name="active"${r.active ? ' checked' : ''} aria-label="Enabled"></td><td>${acts('<button class="btn sm ghost danger" type="button" data-rwdel>Remove</button>')}</td></tr>`;
+        const syncRw = () => {
+            const on = W.filter(r => r.active), tot = on.reduce((t, r) => t + hund(r), 0), ok = tot == 10000 && on.length >= 2 && on.length <= MAXW;
+            $$('#rwt tbody tr[data-k]').forEach(tr => { const r = W.find(x => x.k == tr.dataset.k); tr.classList.toggle('dirty', !!r && (!r.id || JSON.stringify(norm(r)) != BASEROWS[r.id])) });
+            const t = $('#rwtotal'); t.className = 'rwtotal ' + (ok ? 'ok' : 'err');
+            t.textContent = `Enabled rewards: ${on.length} (2 to ${MAXW}) · Total probability: ${fmtPct(tot)}%` + (tot == 10000 ? '' : ' - the enabled rewards must add up to exactly 100%');
+            const p = +$('#rwpct').value; $('#rwhint').textContent = $('#rwpct').value === '' ? '' : `A guest earns ${p}% of the stay total when it is completed. Example: a ₱10,000 stay gives ${Math.floor(Math.round(10000 * p) / 100)} points.`;
+            rwDirty = rwSig() != BASE; $('#rwsave').disabled = !rwDirty; $('#rwdiscard').disabled = !rwDirty;
+            $('#rwstate').textContent = rwDirty ? 'Unsaved changes' : 'No unsaved changes'
+        };
+        const drawRw = () => {
+            $('#rwt').innerHTML = '<thead><tr><th>Wheel reward</th><th>Reward type</th><th>Discount, or room and nights</th><th>Probability (%)</th><th>Enabled</th><th></th></tr></thead><tbody>' + (W.map(rwRow).join('') || '<tr><td colspan="6" class="mu">No rewards yet. Add one below.</td></tr>') + '</tbody>';
+            syncRw()
+        };
+
+        /* ---- reward types: saved straight away (not part of Save Reward Settings) ---- */
+        const typeUse = code => W.filter(r => r.kind == code).length;
+        const drawTypes = () => {
+            $('#rtt').innerHTML = '<thead><tr><th>Type name</th><th>What it does</th><th>Rewards using it</th><th></th></tr></thead><tbody>' + TYPES.map(t => `<tr data-code="${esc(t.code)}"><td><input class="in" name="tlabel" value="${esc(t.label)}" maxlength="60" aria-label="Type name"></td><td>${BASEL[t.base] || esc(t.base)}${+t.builtin ? ' <span class="tag">built-in</span>' : ''}</td><td>${typeUse(t.code)}</td><td>${acts('<button class="btn sm" type="button" data-tsave disabled>Save name</button>' + (+t.builtin ? '' : '<button class="btn sm ghost danger" type="button" data-tdel>Delete</button>'))}</td></tr>`).join('') + '</tbody>'
+        };
+        $('#rtt').addEventListener('input', e => {
+            const tr = e.target.closest('tr[data-code]'); if (!tr) return;
+            const t = TYPES.find(x => x.code == tr.dataset.code), ch = !!t && e.target.value.trim() != t.label;
+            tr.classList.toggle('dirty', ch); tr.querySelector('[data-tsave]').disabled = !ch
+        });
+        const typesChanged = r => { TYPES = r.types; drawTypes(); drawRw(); fillAf() };
+        $('#rtt').onclick = async e => {
+            const tr = e.target.closest('tr[data-code]'), b = e.target.closest('button'); if (!tr || !b) return;
+            const code = tr.dataset.code, msg = $('#rtmsg'), t = TYPES.find(x => x.code == code); if (!t) return;
+            if (b.hasAttribute('data-tsave')) {
+                b.disabled = true; const r = await post('type_save', { code, label: tr.querySelector('[name=tlabel]').value });
+                msg.className = r.error ? 'err' : 'ok'; msg.textContent = r.error || 'Reward type saved'; if (r.error) { b.disabled = false; return }
+                typesChanged(r)
+            } else if (b.hasAttribute('data-tdel')) {
+                if (typeUse(code)) { msg.className = 'err'; msg.textContent = `"${t.label}" is still used by a reward in the table above. Change or remove those rewards first.`; return }
+                if (!confirm(`Delete the reward type "${t.label}"?`)) return;
+                b.disabled = true; const r = await post('type_delete', { code });
+                msg.className = r.error ? 'err' : 'ok'; msg.textContent = r.error || 'Reward type deleted'; if (r.error) { b.disabled = false; return }
+                typesChanged(r)
+            }
+        };
+
+        /* ---- "Add a reward" form: the fields that apply to the chosen type are shown, and the name is suggested from the room and nights ---- */
+        const af = $('#rwaf');
+        const afAuto = () => autoName({ kind: af.kind.value, room: af.room.value, nights: af.nights.value });
+        const syncAf = e => {
+            const b = baseOf(af.kind.value); $$('#rwaf [data-for]').forEach(l => l.hidden = !l.dataset.for.split(' ').includes(b));
+            if (e && ['kind', 'room', 'nights'].includes(e.target.name)) {
+                const cur = af.label.value.trim();
+                if (!cur || cur == af.dataset.auto) { const nn = afAuto(); af.label.value = nn; af.dataset.auto = nn }
+            }
+        };
+        function fillAf() {
+            const sig = JSON.stringify([TYPES, ROOMOPTS]); if (af.dataset.sig == sig) return;
+            const kv = af.kind.value, rvv = af.room.value;
+            af.kind.innerHTML = typeOpts(kv || 'pct'); af.room.innerHTML = roomSelect(rvv || 'any'); af.dataset.sig = sig; af.nights.max = MAXN; syncAf()
+        }
+        af.addEventListener('input', syncAf); af.addEventListener('change', syncAf);
+
+        const loadRw = async force => {
+            if (rwDirty && !force) return;
+            const r = await post('rewards_get'); if (r.error) return;
+            MAXW = r.max_wheel; MAXN = r.max_nights || 30; TYPES = r.types; ROOMOPTS = r.rooms; KNOWN = r.prizes.map(p => +p.id); BASEROWS = {};
+            W = r.prizes.map(p => ({ k: ++uid, id: +p.id, label: p.label, kind: p.kind, pct: +p.pct, room: p.room_id ? String(p.room_id) : (p.room_type || 'any'), nights: +p.nights || 2, chance: p.chance, active: +p.active }));
+            W.forEach(x => BASEROWS[x.id] = JSON.stringify(norm(x)));
+            $('#rwpct').value = +r.percent; BASE = rwSig(); drawRw(); fillAf(); if (!$('#rtt tr.dirty')) drawTypes()
+        };
+        $('#rwt').addEventListener('input', e => rwEdit(e)); $('#rwt').addEventListener('change', e => rwEdit(e));
+        function rwEdit(e) {
+            const el = e.target, tr = el.closest('tr[data-k]'); if (!tr) return;
+            const r = W.find(x => x.k == tr.dataset.k); if (!r) return;
+            const old = autoName(r), wasAuto = !r.label.trim() || r.label.trim() == old;   /* is the name still the suggested one? then it follows the room/nights */
+            const vipAuto = baseOf(r.kind) == 'vip' && /^VIP status \([\d.]+% off every booking\)$/.test(r.label.trim());   /* a VIP name that quotes the discount follows the number */
+            const q = n => tr.querySelector(`[name=${n}]`), v = n => { const x = q(n); return x ? x.value : undefined };
+            r.label = v('label'); r.kind = v('kind'); r.chance = v('chance'); r.active = q('active').checked ? 1 : 0;
+            if (v('pct') !== undefined) r.pct = v('pct'); if (v('room') !== undefined) r.room = v('room'); if (v('nights') !== undefined) r.nights = v('nights');
+            if (el.name == 'kind') {
+                const b = baseOf(r.kind);
+                if (b == 'pct' && !+r.pct) r.pct = 10;
+                if (b == 'vip' && !+r.pct) r.pct = 5;
+                if (b == 'free_room') { if (!roomOk(r.room)) r.room = 'any'; if (!(+r.nights >= 1)) r.nights = 2 }
+            }
+            if (['kind', 'room', 'nights'].includes(el.name)) { const nn = autoName(r); if (nn && wasAuto) r.label = nn }
+            if (el.name == 'pct' && vipAuto && +r.pct >= 1) { r.label = `VIP status (${+r.pct}% off every booking)`; const li = q('label'); if (li) li.value = r.label }
+            if (el.name == 'kind') { drawRw(); return }   /* a different type shows different fields */
+            if (el.name == 'room' || el.name == 'nights') { const li = q('label'); if (li && li.value != r.label) li.value = r.label }
+            syncRw()
+        }
+        $('#rwt').onclick = e => {
+            const b = e.target.closest('[data-rwdel]'); if (!b) return;
+            const k = b.closest('tr').dataset.k, r = W.find(x => x.k == k); W = W.filter(x => x.k != k);
+            drawRw(); drawTypes(); $('#rwmsg').textContent = ''; $('#rwstate').textContent = `"${r.label.trim() || 'Reward'}" removed. It is deleted when you press Save Reward Settings.`
+        };
+        $('#rwpct').addEventListener('input', syncRw);
+        af.onsubmit = e => {
+            e.preventDefault(); const b = baseOf(af.kind.value), label = af.label.value.trim(), msg = $('#rwmsg');
+            if (W.some(r => r.label.trim().toLowerCase() == label.toLowerCase())) { msg.textContent = 'A reward with that name already exists'; return }
+            if (b == 'vip' && !(+af.pct.value >= 1 && +af.pct.value <= 100)) { msg.textContent = 'The VIP discount must be from 1% to 100%'; return }
+            if (b == 'free_room' && !roomOk(af.room.value)) { msg.textContent = 'Choose which room the free stay is for'; return }
+            if (b == 'free_room' && !(Number.isInteger(+af.nights.value) && +af.nights.value >= 1 && +af.nights.value <= MAXN)) { msg.textContent = `Free nights must be a whole number from 1 to ${MAXN}`; return }
+            W.push({ k: ++uid, id: 0, label, kind: af.kind.value, pct: b == 'pct' || b == 'vip' ? +af.pct.value : 0, room: b == 'free_room' ? af.room.value : 'any', nights: b == 'free_room' ? +af.nights.value : 2, chance: af.chance.value || 0, active: 1 });
+            af.reset(); af.dataset.sig = ''; af.dataset.auto = ''; af.kind.innerHTML = ''; af.room.innerHTML = ''; fillAf();
+            msg.textContent = ''; drawRw(); drawTypes();
+            $('#rwstate').textContent = `"${label}" added to the table. Set its probability, then press Save Reward Settings.`
+        };
+        const rwCheck = () => {
+            const names = new Set(); let on = 0, tot = 0;
+            for (const r of W) {
+                const n = r.label.trim(); if (!n) return 'Every reward needs a name';
+                if (names.has(n.toLowerCase())) return `Two rewards cannot have the same name (${n})`; names.add(n.toLowerCase());
+                if (!TYPES.some(t => t.code == r.kind)) return `${n}: choose a reward type`;
+                const b = baseOf(r.kind);
+                if (b == 'pct' && !(+r.pct >= 1 && +r.pct <= 100)) return `${n}: the discount must be from 1% to 100%`;
+                if (b == 'vip' && !(+r.pct >= 1 && +r.pct <= 100)) return `${n}: the VIP discount must be from 1% to 100%`;
+                if (b == 'free_room') {
+                    if (!roomOk(r.room)) return `${n}: choose which room the free stay is for`;
+                    if (!(Number.isInteger(+r.nights) && +r.nights >= 1 && +r.nights <= MAXN)) return `${n}: free nights must be a whole number from 1 to ${MAXN}`
+                }
+                if (r.chance === '' || isNaN(+r.chance) || +r.chance < 0 || +r.chance > 100) return `${n}: the probability must be a number from 0 to 100`;
+                if (Math.abs(+r.chance * 100 - hund(r)) > 1e-6) return `${n}: use at most 2 decimal places for the probability`;
+                if (r.active) { if (hund(r) < 1) return `${n}: an enabled reward needs a probability above 0`; on++; tot += hund(r) }
+            }
+            if ($('#rwpct').value === '' || +$('#rwpct').value < 0 || +$('#rwpct').value > 100) return 'Points earned must be a number from 0 to 100 (% of the amount spent)';
+            if (on < 2) return 'Enable at least 2 rewards so the wheel has something to spin';
+            if (on > MAXW) return `The wheel can show at most ${MAXW} enabled rewards. Switch some off.`;
+            if (tot != 10000) return `The probabilities of the enabled rewards must add up to exactly 100% (they add up to ${fmtPct(tot)}%)`;
+            return ''
+        };
+        $('#rwsave').onclick = async () => {
+            const bad = rwCheck(); $('#rwmsg').textContent = bad; if (bad) return;
+            $('#rwsave').disabled = true; $('#rwdiscard').disabled = true;
+            const r = await post('rewards_save', { percent: $('#rwpct').value, rows: JSON.stringify(W.map(norm)), known: JSON.stringify(KNOWN) });
+            $('#rwmsg').textContent = r.error || ''; if (r.error) { syncRw(); return }
+            rwDirty = false; await loadRw(true); $('#rwstate').textContent = 'All changes saved'
+        };
+        $('#rwdiscard').onclick = async () => { $('#rwmsg').textContent = ''; await loadRw(true) };
+        window.loadRw = loadRw
+    }
 
     /* walk-in booking with live price preview */
     if ($('#wf')) {
