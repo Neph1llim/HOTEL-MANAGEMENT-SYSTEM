@@ -8,7 +8,7 @@ include 'head.php';
  */
 $galleryImages = [
     [
-        'file' => 'assets/img/room-b.png',
+        'file' => 'assets/img/room-a.png',
         'category' => 'standard',
         'categoryLabel' => 'Standard Rooms',
         'title' => 'Standard Room',
