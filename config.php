@@ -161,6 +161,26 @@ function quote($pdo, $rid, $ci, $co, $pax, $vid = null, $gid = null)
 }
 /* Guest self-cancel: only pending/approved reservations, up to the check-in day.
    Per the Terms & Conditions, cancelling less than 3 days before check-in is non-refundable. */
+/* Bookings per room type for a date range [$from, $to): the "Occupancy by room type" bar graph (Admin analytics: the selected month;
+   printable report: the report period). Standard rooms, family rooms and the Event Hall.
+   bookings = approved + completed reservations with at least one night inside the range (a stay that crosses a month end counts in both months);
+   nights = the nights of those stays that fall inside the range. */
+function bookingsByType($pdo, $from, $to)
+{
+   $out = [];
+   foreach (['standard', 'family', 'hall'] as $t)
+      $out[$t] = ['type' => $t, 'bookings' => 0, 'nights' => 0];
+   $q = $pdo->prepare("SELECT m.type,r.checkin,r.checkout FROM reservations r JOIN rooms m ON m.id=r.room_id WHERE r.status IN('approved','completed') AND r.checkin<? AND r.checkout>?");
+   $q->execute([$to, $from]);
+   foreach ($q->fetchAll() as $x) {
+      $n = max(0, (int) round((min(strtotime($x['checkout']), strtotime($to)) - max(strtotime($x['checkin']), strtotime($from))) / 86400));
+      if ($n && isset($out[$x['type']])) {
+         $out[$x['type']]['bookings']++;
+         $out[$x['type']]['nights'] += $n;
+      }
+   }
+   return array_values($out);
+}
 function cancelInfo($r)
 {
    $in = date_create($r['checkin']);

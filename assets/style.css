@@ -2181,9 +2181,10 @@ tr.dirty td {
     grid-template-columns: repeat(var(--n), 9.5rem) auto;
     align-items: end;
     gap: .7rem .9rem;
-    width: fit-content;
+    width: 100%;
     max-width: 100%;
-    padding: .85rem 1rem
+    padding: .85rem 1rem;
+    margin-bottom: 25px;
 }
 
 .wform.compact .wfh {
