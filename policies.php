@@ -15,6 +15,5 @@ include 'head.php'; ?>
         <li><span class="pnum">4</span><div><h3 data-t>No smoking</h3><p data-t>Smoking inside guest rooms is prohibited. Violations are fined ₱2,000.</p></div></li>
         <li><span class="pnum">5</span><div><h3 data-t>Quiet hours</h3><p data-t>Keep noise low after 10:00 PM around the accommodation areas.</p></div></li>
     </ol>
-    <p><a class="btn ghost sm" href="make-reservation.php" data-t>Make a reservation</a></p>
 </section>
 <?php include 'foot.php'; ?>

@@ -54,7 +54,7 @@ foreach ($pdo->query('SELECT type,MIN(rate) r FROM rooms WHERE active=1 GROUP BY
                 <p class="mu" data-t>₱500 per guest beyond 30, up to 40</p>
             </article><?php endif; ?>
     </div>
-    <p><a class="btn ghost" href="rooms.php" data-t>See room photos</a></p>
+    <p><a class="btn ghost" href="rooms.php" data-t>See rooms</a></p>
 </section>
 <section class="wrap">
     <h2 data-t data-morph="text">Gallery</h2>

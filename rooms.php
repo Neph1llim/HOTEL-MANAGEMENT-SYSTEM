@@ -31,7 +31,7 @@ foreach ($rooms as $room) {
 $sections = [
     'standard' => [
         'title' => 'Standard Rooms',
-        'description' => 'Relax in a comfortable, thoughtfully appointed room—ideal for couples, friends, or a small family.',
+        'description' => 'Relax in a comfortable, thoughtfully appointed ideal room for couples, friends, or a small family.',
         'class' => 'room-grid',
     ],
     'family' => [

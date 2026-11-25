@@ -57,7 +57,6 @@
     <p class="mu" id="csel" aria-live="polite"></p>
 </section>
 <section id="roomresults" class="wrap">
-    <p class="mu" id="rhint" data-t>Results update automatically as you change the dates, guests or voucher. Fully booked rooms are hidden.</p>
     <div id="results" class="grid"></div>
 </section>
 <?php include 'foot.php'; ?>
