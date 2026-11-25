@@ -20,11 +20,11 @@
     <link rel="stylesheet" href="assets/style.css">
     <style>
         /* notification bell (kept here so style.css stays untouched) */
-        .bell { position: relative; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; margin-left: .4rem; padding: .3rem .55rem; line-height: 1; color: var(--tx); text-decoration: none; border: 1px solid var(--ln); border-radius: 8px }
+        .bell { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; box-sizing: border-box; width: 2.4rem; min-width: 2.4rem; height: 2.4rem; margin-left: .4rem; padding: 0; line-height: 1; color: var(--ivory, #F7F4EC); text-decoration: none; background: transparent; border: 1px solid rgba(212, 175, 55, .42); border-radius: 50%; transition: background-color .3s ease, border-color .3s ease, color .3s ease }
         .bell[hidden], .bell .bn[hidden] { display: none }
-        .bell:hover, .bell:focus-visible { color: #D4AF37; border-color: #D4AF37 }
-        .bell svg { display: block; width: 20px; height: 20px }
-        .bell .bn { position: absolute; top: -8px; right: -8px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: #D4AF37; color: #0A2214; font: 700 .7rem/18px var(--bd, system-ui, sans-serif); text-align: center }
+        .bell:hover, .bell:focus-visible { color: #E8C868; border-color: #E8C868; background: rgba(212, 175, 55, .18) }
+        .bell svg { display: block; width: 18px; height: 18px }
+        .bell .bn { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 99px; background: #D4AF37; color: #0A2214; box-shadow: 0 0 0 2px #0A2214; font: 700 .68rem/18px var(--bd, system-ui, sans-serif); text-align: center }
     </style>
 </head>
 
