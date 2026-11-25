@@ -18,6 +18,7 @@ $nav = [
     'reservations' => ['admin-reservations.php', 'Reservations', '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'],
     'walkin'       => ['admin-walkin.php', 'Walk-in booking', '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>'],
     'rooms'        => ['admin-rooms.php', 'Rooms &amp; Rates', '<path d="M2 20v-8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8M2 16h20M6 10V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4"/>'],
+    'rewards'      => ['admin-rewards.php', 'Rewards', '<path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>'],
     'reports'      => ['admin-reports.php', 'Reports', '<path d="M3 3v18h18"/><path d="M7 15v-4M12 15V7M17 15v-6"/>'],
 ];
 ?><!doctype html>

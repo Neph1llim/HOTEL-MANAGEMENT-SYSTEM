@@ -5,6 +5,8 @@ function P($k){return trim($_POST[$k]??'');}
 function guest($pdo){if(empty($_SESSION['gid']))return false;$s=$pdo->prepare('SELECT * FROM guests WHERE id=?');$s->execute([$_SESSION['gid']]);return $s->fetch();}
 function adm(){if(empty($_SESSION['admin']))j(['error'=>'Login required'],401);}
 function resById($pdo,$id,$lock=false){$s=$pdo->prepare('SELECT * FROM reservations WHERE id=?'.($lock?' FOR UPDATE':''));$s->execute([$id]);return $s->fetch();}
+/* what the wheel needs to draw each slice: its name and kind (VIP slices are gold) */
+function wheelSlices($pr){$o=[];foreach($pr as $p)$o[]=['label'=>$p['label'],'kind'=>$p['base']];return $o;}
 /* a voucher can be given as its id or as its code (VCH-<id>); returns the id or null */
 function vid($v){$v=strtoupper(trim((string)$v));if($v==='')return null;if(preg_match('/^(?:VCH-?)?0*(\d+)$/',$v,$m))return (int)$m[1];return -1;}
 /* validates the room form fields shared by room_save and room_add; returns an error text or null */
@@ -158,19 +160,26 @@ case 'notes_read':
  $pdo->prepare('UPDATE notifications SET is_read=1 WHERE guest_id=?')->execute([$g['id']]);j(['ok'=>1]);
 case 'lookup':
  $g=guest($pdo);if(!$g)j(['error'=>'Please log in'],401);
- $v=$pdo->prepare('SELECT id,prize,CONCAT("VCH-",id) code FROM vouchers WHERE guest_id=? AND status="unused"');$v->execute([$g['id']]);
+ $v=$pdo->prepare('SELECT id,prize,kind,CONCAT("VCH-",id) code FROM vouchers WHERE guest_id=? AND status="unused"');$v->execute([$g['id']]);
  $u=$pdo->prepare('SELECT COUNT(*) c FROM notifications WHERE guest_id=? AND is_read=0');$u->execute([$g['id']]);
  j(['guest'=>['name'=>$g['name'],'email'=>$g['email'],'phone'=>$g['phone'],'points'=>(int)$g['points'],'vip'=>(int)$g['vip']],'vouchers'=>$v->fetchAll(),'unread'=>(int)$u->fetch()['c']]);
+case 'wheel': /* public: the enabled rewards in wheel order, so the wheel on the Rewards page always matches Admin > Rewards */
+ j(['prizes'=>wheelSlices(wheelPrizes($pdo))]);
 case 'spin':
  $g=guest($pdo);if(!$g)j(['error'=>'Please log in'],401);
  $pdo->beginTransaction();
  $s=$pdo->prepare('SELECT points FROM guests WHERE id=? FOR UPDATE');$s->execute([$g['id']]);$pts=(int)$s->fetch()['points'];
  if($pts<SPIN_COST){$pdo->rollBack();j(['error'=>'You need '.SPIN_COST.' points to spin'],422);}
- $x=random_int(1,10000);$c=0;$i=0;foreach(PRIZES as $k=>$p){$c+=$p[3];if($x<=$c){$i=$k;break;}}
- $p=PRIZES[$i];
- $pdo->prepare('UPDATE guests SET points=points-?'.($p[1]=='vip'?',vip=1':'').' WHERE id=?')->execute([SPIN_COST,$g['id']]);
- if($p[1]!='vip')$pdo->prepare('INSERT INTO vouchers(guest_id,prize,kind,pct) VALUES(?,?,?,?)')->execute([$g['id'],$p[0],$p[1],$p[2]]);
- $pdo->commit();j(['index'=>$i,'prize'=>$p[0],'points'=>$pts-SPIN_COST]);
+ $pr=wheelPrizes($pdo);
+ /* chances are percentages with up to 2 decimals, so they are weighed in hundredths of a percent */
+ $tot=0;foreach($pr as $k=>$p){$pr[$k]['w']=(int)round((float)$p['chance']*100);$tot+=$pr[$k]['w'];}
+ if(!$pr||$tot<1){$pdo->rollBack();j(['error'=>'The rewards wheel is not available right now'],422);}
+ $x=random_int(1,$tot);$c=0;$i=count($pr)-1;foreach($pr as $k=>$p){$c+=$p['w'];if($x<=$c){$i=$k;break;}}
+ $p=$pr[$i];
+ $pdo->prepare('UPDATE guests SET points=points-?'.($p['base']=='vip'?',vip=1':'').' WHERE id=?')->execute([SPIN_COST,$g['id']]);
+ /* the voucher keeps its own copy of what it is worth (name, discount, room, nights), so editing or deleting the reward later never changes vouchers already won */
+ if($p['base']!='vip'){$fr=$p['base']=='free_room';$pdo->prepare('INSERT INTO vouchers(guest_id,prize,kind,pct,room_id,room_type,nights) VALUES(?,?,?,?,?,?,?)')->execute([$g['id'],$p['label'],$p['base'],$p['base']=='pct'?(int)$p['pct']:0,$fr?$p['room_id']:null,$fr?$p['room_type']:null,$fr?(int)$p['nights']:2]);}
+ $pdo->commit();j(['index'=>$i,'prize'=>$p['label'],'points'=>$pts-SPIN_COST,'prizes'=>wheelSlices($pr)]);
 
 case 'mini_status': case 'mini_start': case 'mini_claim': /* daily minigames 'toss' and 'catch': 1 claim per game per day, max 5 points each */
  $g=guest($pdo);if(!$g)j(['error'=>'Please log in'],401);
@@ -331,6 +340,90 @@ case 'room_delete': /* remove a room. Booking history is kept: a room with past 
  if($s->fetch()['c'])$pdo->prepare('UPDATE rooms SET deleted=1,active=0 WHERE id=?')->execute([$m['id']]);
  else $pdo->prepare('DELETE FROM rooms WHERE id=?')->execute([$m['id']]);
  $pdo->commit();j(['ok'=>1]);
+case 'rewards_get': /* Admin > Rewards: the points rate and every wheel reward (enabled or not) */
+ adm();
+ j(['percent'=>pointsPercent($pdo),'prizes'=>$pdo->query('SELECT id,label,kind,pct,room_id,room_type,nights,chance,active FROM wheel_prizes ORDER BY id')->fetchAll(),'max_wheel'=>MAX_WHEEL,'max_nights'=>MAX_FREE_NIGHTS,
+  'types'=>rewardTypes($pdo),'rooms'=>$pdo->query('SELECT id,name,type,active FROM rooms WHERE deleted=0 AND type<>"hall" ORDER BY id')->fetchAll()]);
+case 'rewards_save': /* "Save Reward Settings": the points rate and the whole list of wheel rewards (added, edited, removed) in one go. All valid or nothing is saved. */
+ adm();
+ $pp=trim(P('percent'));
+ if($pp===''||!is_numeric($pp)||(float)$pp<0||(float)$pp>100)j(['error'=>'Points earned must be a number from 0 to 100 (% of the amount spent)'],422);
+ $rows=json_decode($_POST['rows']??'[]',true);$known=json_decode($_POST['known']??'[]',true);
+ if(!is_array($rows)||!is_array($known))j(['error'=>'Nothing to save'],422);
+ $types=[];foreach(rewardTypes($pdo) as $t)$types[$t['code']]=$t['base'];
+ $rooms=[];foreach($pdo->query('SELECT id,type FROM rooms WHERE deleted=0')->fetchAll() as $m)$rooms[(int)$m['id']]=$m['type'];
+ $seen=[];$on=0;$tot=0;$clean=[];
+ foreach($rows as $d){
+  $lb=trim((string)($d['label']??''));$kind=(string)($d['kind']??'');$act=!empty($d['active']);
+  if($lb===''||mb_strlen($lb)>60)j(['error'=>'Every reward needs a name (up to 60 characters)'],422);
+  if(isset($seen[mb_strtolower($lb)]))j(['error'=>"Two rewards cannot have the same name ($lb)"],422);
+  $seen[mb_strtolower($lb)]=1;
+  if(!isset($types[$kind]))j(['error'=>"$lb: choose a reward type"],422);
+  $base=$types[$kind];$pc=0;$rid=null;$rty=null;$nt=2;
+  if($base==='pct'){$pc=(int)($d['pct']??0);if($pc<1||$pc>100)j(['error'=>"$lb: the discount must be from 1% to 100%"],422);}
+  if($base==='vip'){$pc=(int)($d['pct']??0);if($pc<1||$pc>100)j(['error'=>"$lb: the VIP discount must be from 1% to 100%"],422);}
+  if($base==='free_room'){
+   $room=(string)($d['room']??'');
+   if($room!==''&&ctype_digit($room)){if(!isset($rooms[(int)$room])||$rooms[(int)$room]==='hall')j(['error'=>"$lb: choose a room that is still on the rooms list"],422);$rid=(int)$room;}
+   elseif($room==='standard'||$room==='family')$rty=$room;
+   elseif($room!=='any')j(['error'=>"$lb: choose which room the free stay is for"],422);
+   $nt=(int)($d['nights']??0);if($nt<1||$nt>MAX_FREE_NIGHTS)j(['error'=>"$lb: free nights must be from 1 to ".MAX_FREE_NIGHTS],422);
+  }
+  $ch=$d['chance']??'';
+  if(!is_numeric($ch)||(float)$ch<0||(float)$ch>100)j(['error'=>"$lb: the probability must be a number from 0 to 100"],422);
+  $w=(int)round((float)$ch*100);
+  if(abs((float)$ch*100-$w)>1e-6)j(['error'=>"$lb: use at most 2 decimal places for the probability"],422);
+  if($act){
+   if($w<1)j(['error'=>"$lb: an enabled reward needs a probability above 0"],422);
+   $on++;$tot+=$w;
+  }
+  $clean[]=['id'=>(int)($d['id']??0),'label'=>$lb,'kind'=>$kind,'base'=>$base,'pct'=>$pc,'room_id'=>$rid,'room_type'=>$rty,'nights'=>$nt,'chance'=>number_format($w/100,2,'.',''),'active'=>$act?1:0];
+ }
+ if($on<2)j(['error'=>'Enable at least 2 rewards so the wheel has something to spin'],422);
+ if($on>MAX_WHEEL)j(['error'=>'The wheel can show at most '.MAX_WHEEL.' enabled rewards. Switch some off.'],422);
+ if($tot!==10000)j(['error'=>'The probabilities of the enabled rewards must add up to exactly 100% (they add up to '.rtrim(rtrim(number_format($tot/100,2,'.',''),'0'),'.').'%)'],422);
+ $pdo->beginTransaction();
+ $have=array_map('intval',array_column($pdo->query('SELECT id FROM wheel_prizes FOR UPDATE')->fetchAll(),'id'));
+ $kn=array_map('intval',$known);sort($have);sort($kn);
+ if($have!==$kn){$pdo->rollBack();j(['error'=>'The rewards were changed somewhere else. Reload the page and try again.'],409);}
+ $keep=[];
+ foreach($clean as $c){
+  if($c['id']){
+   if(!in_array($c['id'],$have,true)){$pdo->rollBack();j(['error'=>'A reward in the table no longer exists. Reload the page and try again.'],404);}
+   $pdo->prepare('UPDATE wheel_prizes SET label=?,kind=?,pct=?,room_id=?,room_type=?,nights=?,chance=?,active=? WHERE id=?')->execute([$c['label'],$c['kind'],$c['pct'],$c['room_id'],$c['room_type'],$c['nights'],$c['chance'],$c['active'],$c['id']]);
+   $keep[]=$c['id'];
+  }else{
+   $pdo->prepare('INSERT INTO wheel_prizes(label,kind,pct,room_id,room_type,nights,chance,active) VALUES(?,?,?,?,?,?,?,?)')->execute([$c['label'],$c['kind'],$c['pct'],$c['room_id'],$c['room_type'],$c['nights'],$c['chance'],$c['active']]);
+   $keep[]=(int)$pdo->lastInsertId();
+  }
+ }
+ /* removed rewards: vouchers already won keep their own name/kind/discount, so deleting a reward never breaks them */
+ foreach($have as $id)if(!in_array($id,$keep,true))$pdo->prepare('DELETE FROM wheel_prizes WHERE id=?')->execute([$id]);
+ $pdo->prepare('INSERT INTO settings(k,v) VALUES(\'points_percent\',?) ON DUPLICATE KEY UPDATE v=VALUES(v)')->execute([(string)(float)$pp]);
+ /* the VIP discount that guests get on every booking is the number on the VIP status reward (the highest one if there are several; unchanged if none is left) */
+ $vp=array_column(array_filter($clean,function($c){return $c['base']==='vip';}),'pct');
+ if($vp)$pdo->prepare('INSERT INTO settings(k,v) VALUES(\'vip_percent\',?) ON DUPLICATE KEY UPDATE v=VALUES(v)')->execute([(string)max($vp)]);
+ $pdo->commit();j(['ok'=>1,'n'=>count($clean)]);
+case 'type_save': /* rename a reward type (what it does cannot be changed) */
+ adm();
+ $code=P('code');$lb=trim(P('label'));
+ if($lb===''||mb_strlen($lb)>60)j(['error'=>'Enter a name for the reward type (up to 60 characters)'],422);
+ $s=$pdo->prepare('SELECT 1 FROM reward_types WHERE code=?');$s->execute([$code]);
+ if(!$s->fetch())j(['error'=>'That reward type no longer exists. Reload the page.'],404);
+ $s=$pdo->prepare('SELECT 1 FROM reward_types WHERE LOWER(label)=LOWER(?) AND code<>?');$s->execute([$lb,$code]);
+ if($s->fetch())j(['error'=>'A reward type with that name already exists'],422);
+ $pdo->prepare('UPDATE reward_types SET label=? WHERE code=?')->execute([$lb,$code]);
+ j(['ok'=>1,'types'=>rewardTypes($pdo)]);
+case 'type_delete': /* only a custom type that no wheel reward uses */
+ adm();
+ $code=P('code');
+ $s=$pdo->prepare('SELECT builtin FROM reward_types WHERE code=?');$s->execute([$code]);$t=$s->fetch();
+ if(!$t)j(['error'=>'That reward type no longer exists. Reload the page.'],404);
+ if((int)$t['builtin'])j(['error'=>'Built-in reward types cannot be deleted'],422);
+ $s=$pdo->prepare('SELECT COUNT(*) FROM wheel_prizes WHERE kind=?');$s->execute([$code]);
+ if((int)$s->fetchColumn())j(['error'=>'Rewards on the wheel still use this type. Change or remove them, press Save Reward Settings, then delete the type.'],422);
+ $pdo->prepare('DELETE FROM reward_types WHERE code=?')->execute([$code]);
+ j(['ok'=>1,'types'=>rewardTypes($pdo)]);
 case 'wk_quote': /* live price preview for the walk-in form */
  adm();
  $g=null;if(P('email')){$s=$pdo->prepare('SELECT id FROM guests WHERE email=?');$s->execute([P('email')]);$g=$s->fetch()['id']??null;}

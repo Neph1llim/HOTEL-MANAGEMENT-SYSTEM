@@ -7,8 +7,88 @@ if (!$pdo->query("SHOW COLUMNS FROM rooms LIKE 'deleted'")->fetch())
    $pdo->exec('ALTER TABLE rooms ADD deleted TINYINT DEFAULT 0');
 if (!$pdo->query('SELECT COUNT(*) c FROM admins')->fetch()['c'])
    $pdo->prepare('INSERT INTO admins(username,pass) VALUES("admin",?)')->execute([password_hash('admin123', PASSWORD_DEFAULT)]);
-// [label, kind, percent, weight out of 10000] - same order as the wheel in assets/app.js
-const PRIZES = [['20% discount voucher', 'pct', 20, 5000], ['50% discount voucher', 'pct', 50, 3000], ['75% discount voucher + meal stubs', 'pct', 75, 1250], ['Free Standard Room, 2 nights', 'free_standard', 0, 500], ['Free Family Room, 2 nights', 'free_family', 0, 240], ['VIP status (5% off every booking)', 'vip', 0, 10]];
+/* ---------- rewards: settings + wheel prizes (edited in Admin > Rewards) ----------
+   settings      : key/value pairs. points_percent = % of a completed stay's total that is awarded as points.
+   wheel_prizes  : one row per wheel reward. chance = probability in percent (enabled rewards add up to 100).
+                   kind: the code of a reward type (table reward_types, managed in Admin > Rewards). Every type does one of:
+                   pct (discount voucher, uses pct) | free_room (free nights in one room or room type, uses room_id/room_type + nights) | vip (VIP status, pct = its discount on every booking) | free_food (a food voucher).
+   Both tables are created (and filled with the original defaults) the first time any page is opened on an older database. */
+if (!$pdo->query("SHOW TABLES LIKE 'settings'")->fetch()) {
+   $pdo->exec('CREATE TABLE settings (k VARCHAR(40) PRIMARY KEY, v VARCHAR(255))');
+   $pdo->exec("INSERT INTO settings(k,v) VALUES('points_percent','1')");
+}
+if (!$pdo->query("SHOW TABLES LIKE 'wheel_prizes'")->fetch()) {
+   $pdo->exec("CREATE TABLE wheel_prizes (id INT AUTO_INCREMENT PRIMARY KEY, label VARCHAR(60), kind VARCHAR(20), pct INT DEFAULT 0, room_id INT NULL, room_type VARCHAR(10) NULL, nights TINYINT DEFAULT 2, chance DECIMAL(5,2) DEFAULT 0, active TINYINT DEFAULT 1)");
+   $pdo->exec("INSERT INTO wheel_prizes(label,kind,pct,room_type,nights,chance,active) VALUES
+      ('20% discount voucher','pct',20,NULL,2,50,1),('50% discount voucher','pct',50,NULL,2,30,1),('75% discount voucher + meal stubs','pct',75,NULL,2,12.5,1),
+      ('Free Standard Room, 2 nights','free_room',0,'standard',2,5,1),('Free Family Room, 2 nights','free_room',0,'family',2,2.4,1),('VIP status (5% off every booking)','vip',5,NULL,2,0.1,1)");
+}
+/* reward types (Admin > Rewards > Reward types). A type is a named kind of reward; what it DOES is its base:
+   pct = discount voucher | free_room = free nights in a room | vip = VIP status | free_food = free food voucher. The built-in types cannot be deleted.
+   The old separate "Free Standard Room" and "Free Family Room" kinds are one "Free room stay" type now: the room (a specific room,
+   any Standard room, any Family room, or any room) and the number of nights are set on each reward and copied onto the voucher a guest wins. */
+if (!$pdo->query("SHOW TABLES LIKE 'reward_types'")->fetch()) {
+   $pdo->exec('CREATE TABLE reward_types (code VARCHAR(20) PRIMARY KEY, label VARCHAR(60), base VARCHAR(10), builtin TINYINT DEFAULT 0)');
+   $pdo->exec("INSERT INTO reward_types(code,label,base,builtin) VALUES ('pct','Discount voucher (% off)','pct',1),('free_room','Free room stay','free_room',1),('vip','VIP status','vip',1),('free_food','Free food','free_food',1)");
+}
+/* "Free food" is a built-in reward type too (a meal or food perk the guest claims at the front desk). Added to databases made before it existed. */
+if (!$pdo->query("SELECT 1 FROM reward_types WHERE code='free_food'")->fetch())
+   $pdo->exec("INSERT INTO reward_types(code,label,base,builtin) VALUES ('free_food','Free food','free_food',1)");
+/* the VIP discount is no longer fixed at 5%: it is the discount number on the VIP status reward in Admin > Rewards (kept in settings.vip_percent so VIP guests keep it
+   even if that reward is switched off or removed from the wheel). First run on an older database: keep 5% and give the VIP reward that number. */
+if (!$pdo->query("SELECT 1 FROM settings WHERE k='vip_percent'")->fetch()) {
+   $pdo->exec("INSERT INTO settings(k,v) VALUES('vip_percent','5')");
+   $pdo->exec("UPDATE wheel_prizes SET pct=5 WHERE pct=0 AND kind IN (SELECT code FROM reward_types WHERE base='vip')");
+   $pdo->exec("UPDATE reward_types SET label='VIP status' WHERE code='vip' AND label='VIP status (5% off every booking)'");
+}
+foreach (['wheel_prizes', 'vouchers'] as $tb)
+   if (!$pdo->query("SHOW COLUMNS FROM $tb LIKE 'nights'")->fetch())
+      $pdo->exec("ALTER TABLE $tb ADD room_id INT NULL, ADD room_type VARCHAR(10) NULL, ADD nights TINYINT DEFAULT 2");
+if ($pdo->query("SELECT 1 FROM wheel_prizes WHERE kind IN ('free_standard','free_family') UNION ALL SELECT 1 FROM vouchers WHERE kind IN ('free_standard','free_family') LIMIT 1")->fetch())
+   foreach (['standard', 'family'] as $ty)
+      foreach (['wheel_prizes', 'vouchers'] as $tb)
+         $pdo->exec("UPDATE $tb SET kind='free_room', room_type='$ty', nights=2 WHERE kind='free_$ty'");
+const PRIZE_BASES = ['pct', 'free_room', 'vip', 'free_food'];   // what a reward type can do
+const MAX_FREE_NIGHTS = 30;                         // most free nights one free-room reward can give
+const MAX_WHEEL = 8;   // most rewards that can be enabled on the wheel at once, so the labels stay readable
+/* percent of a completed stay's total that is awarded as points (Admin > Rewards) */
+function pointsPercent($pdo)
+{
+   $v = $pdo->query("SELECT v FROM settings WHERE k='points_percent'")->fetch();
+   return $v ? max(0, min(100, (float) $v['v'])) : 1.0;
+}
+/* % off every booking for VIP guests (Admin > Rewards > the VIP status reward) */
+function vipPercent($pdo)
+{
+   $v = $pdo->query("SELECT v FROM settings WHERE k='vip_percent'")->fetch();
+   return $v ? max(0, min(100, (float) $v['v'])) : 5.0;
+}
+/* 12.5 -> "12.5", 50.00 -> "50" */
+function pctText($n)
+{
+   return rtrim(rtrim(number_format((float) $n, 2, '.', ''), '0'), '.');
+}
+/* the rewards currently on the wheel, in wheel order. The wheel in assets/app.js draws them in this same order. */
+function wheelPrizes($pdo)
+{
+   /* base = what the reward does (from its type); the wheel and the voucher use the base, so they never depend on a type that is renamed or deleted later */
+   return $pdo->query('SELECT p.id,p.label,p.kind,COALESCE(t.base,p.kind) base,p.pct,p.room_id,p.room_type,p.nights,p.chance FROM wheel_prizes p LEFT JOIN reward_types t ON t.code=p.kind WHERE p.active=1 ORDER BY p.id')->fetchAll();
+}
+function rewardTypes($pdo)
+{
+   return $pdo->query('SELECT code,label,base,builtin FROM reward_types ORDER BY builtin DESC, label')->fetchAll();
+}
+/* what a free-room voucher covers, in words: "Room A", "any Family room", "any Standard or Family room" */
+function voucherScope($pdo, $v)
+{
+   if (!empty($v['room_id'])) {
+      $s = $pdo->prepare('SELECT name FROM rooms WHERE id=? AND deleted=0');
+      $s->execute([$v['room_id']]);
+      $n = $s->fetchColumn();
+      return $n !== false ? $n : 'a room that is no longer available';
+   }
+   return !empty($v['room_type']) ? 'any ' . ucfirst($v['room_type']) . ' room' : 'any Standard or Family room';
+}
 const SPIN_COST = 100;
 const HOLD_HOURS = 24;   // an online reservation with no payment proof is released after this many hours
 function j($d, $c = 200)
@@ -59,7 +139,14 @@ function quote($pdo, $rid, $ci, $co, $pax, $vid = null, $gid = null)
          return ['error' => 'Voucher not valid'];
       if ($v['kind'] == 'pct')
          $d = $sub * $v['pct'] / 100;
-      elseif ($v['kind'] == 'free_' . $r['type'])
+      elseif ($v['kind'] == 'free_room') {
+         /* a free-room voucher is for ONE specific room, or any room of one type, or any Standard/Family room; and for a set number of nights */
+         $ok = !empty($v['room_id']) ? (int) $v['room_id'] === (int) $r['id']
+            : (!empty($v['room_type']) ? $v['room_type'] === $r['type'] : in_array($r['type'], ['standard', 'family'], true));
+         if (!$ok)
+            return ['error' => 'This voucher only applies to ' . voucherScope($pdo, $v)];
+         $d = $r['rate'] * min($n, max(1, (int) $v['nights']));
+      } elseif ($v['kind'] == 'free_' . $r['type'])   /* vouchers won before the two free-room kinds were merged */
          $d = $r['rate'] * min($n, 2);
       else
          return ['error' => 'Voucher does not apply to this room'];
@@ -67,7 +154,7 @@ function quote($pdo, $rid, $ci, $co, $pax, $vid = null, $gid = null)
       $s = $pdo->prepare('SELECT vip FROM guests WHERE id=?');
       $s->execute([$gid]);
       if ($s->fetch()['vip'])
-         $d = $sub * .05;
+         $d = $sub * vipPercent($pdo) / 100;
    }
    $t = $sub + $extra - $d;
    return ['nights' => $n, 'sub' => $sub, 'extra' => $extra, 'disc' => $d, 'total' => $t, 'down' => round($t / 2, 2)];
@@ -124,7 +211,7 @@ function cancelRes($pdo, $r, $by, $refundable)
    notify($pdo, $r['guest_id'], $m);
    return $refund;
 }
-/* Mark an approved reservation completed and award 1% of the total as points. Returns the points, or false if it was not approved. */
+/* Mark an approved reservation completed and award points (the % set in Admin > Rewards, 1% by default) of the total. Returns the points, or false if it was not approved. */
 function completeStay($pdo, $id)
 {
    $own = !$pdo->inTransaction();
@@ -139,7 +226,7 @@ function completeStay($pdo, $id)
       return false;
    }
    $pdo->prepare('UPDATE reservations SET status="completed" WHERE id=?')->execute([$id]);
-   $pts = (int) floor($r['total'] * 0.01);
+   $pts = (int) floor(round($r['total'] * pointsPercent($pdo) / 100, 6));
    $pdo->prepare('UPDATE guests SET points=points+? WHERE id=?')->execute([$pts, $r['guest_id']]);
    notify($pdo, $r['guest_id'], "Thank you for staying with us! Reservation {$r['ref']} is completed and you earned $pts points.");
    if ($own)

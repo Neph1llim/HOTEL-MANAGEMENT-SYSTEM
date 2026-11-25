@@ -19,12 +19,13 @@ const TL = {
   "Quiet hours: Keep noise low after 10:00 PM around the accommodation areas.": "Tahimik na oras: Hinaan ang ingay pagkatapos ng 10:00 PM sa paligid ng mga tuluyan.",
   "I agree to the terms and conditions": "Sumasang-ayon ako sa mga tuntunin at kondisyon", "Confirm reservation": "Kumpirmahin ang reserbasyon", "Cancel": "Kanselahin", "Please accept the Terms & Conditions": "Pakitanggap ang mga Tuntunin at Kondisyon",
   "My points and rewards": "Aking puntos at gantimpala", "Show my points": "Ipakita ang puntos ko", "points": "puntos", "You earn 1% of what you spend after each completed stay. Each spin costs 100 points.": "Kumikita ka ng 1% ng ginastos mo pagkatapos ng bawat natapos na pananatili. 100 puntos bawat ikot.", "Spin for 100 points": "Umikot para sa 100 puntos", "Your vouchers": "Mga voucher mo", "What you can win": "Maaari mong mapanalunan", "You won": "Nanalo ka ng",
-  "Free room vouchers cover the room rate for up to 2 nights. Extra guest fees still apply.": "Sakop ng libreng voucher ang presyo ng kwarto hanggang 2 gabi. May bayad pa rin ang dagdag na bisita.",
+  "Free room vouchers cover the room rate for the room and the number of nights named in the reward. Extra guest fees still apply.": "Sakop ng libreng voucher ang presyo ng kwarto para sa kwarto at bilang ng gabing nakasaad sa pangalan ng gantimpala. May bayad pa rin ang dagdag na bisita.",
   "2 to 3 guests": "2 hanggang 3 bisita", "4 to 5 guests": "4 hanggang 5 bisita", "Up to 30 guests": "Hanggang 30 bisita", "Notifications": "Mga abiso", "Paid": "Bayad na", "Balance due at check-in": "Balanse na babayaran sa check-in", "Paid in full": "Bayad na lahat", "Balance unpaid": "Hindi pa bayad na balanse", "Availability calendar": "Kalendaryo ng availability", "All rooms (rooms free)": "Lahat ng kwarto (bilang ng libre)", "Free": "Libre", "Booked": "Okupado", "Past": "Lipas na", "Click a free date to set your check-in, then another date for check-out.": "Pindutin ang libreng petsa para sa check-in, saka ang isa pa para sa check-out.", "Please pay the downpayment and upload your proof within 24 hours, or the room will be released.": "Bayaran ang downpayment at i-upload ang patunay sa loob ng 24 oras, o ilalabas ang kwarto.", "Cancelled automatically: no payment received within 24 hours.": "Awtomatikong nakansela: walang natanggap na bayad sa loob ng 24 oras.", "Refund pending: the hotel will contact you.": "Nakabinbin ang refund: makikipag-ugnayan ang hotel.", "Refunded": "Naibalik na ang bayad", "Downpayment kept (non-refundable).": "Hindi na maibabalik ang downpayment.", "Your payment is being verified. You can cancel once it is reviewed.": "Sinusuri pa ang bayad ninyo. Maaari kayong magkansela kapag natapos ang pagsusuri.", "Reservation cancelled.": "Nakansela na ang reserbasyon."
 };
 let lang = localStorage.lang || 'en';
 const t = s => {
   if (lang != 'tl') return s; let m = /^Maximum capacity is (\d+) guests$/.exec(s); if (m) return `Hanggang ${m[1]} bisita lamang`;
+  if (m = /^You earn ([\d.]+)% of what you spend after each completed stay\. Each spin costs (\d+) points\.$/.exec(s)) return `Kumikita ka ng ${m[1]}% ng ginastos mo pagkatapos ng bawat natapos na pananatili. ${m[2]} puntos bawat ikot.`;
   if (m = /^Pay before (.+) or the room will be released\.$/.exec(s)) return `Magbayad bago ang ${m[1]} o ilalabas ang kwarto.`;
   if (m = /^Reservation cancelled\. Your refund of (.+) is now pending; the hotel will contact you\.$/.exec(s)) return `Nakansela na ang reserbasyon. Nakabinbin ang refund na ${m[1]}; makikipag-ugnayan ang hotel.`;
   return TL[s] || s
@@ -40,7 +41,7 @@ if ($('#lang')) $('#lang').onclick = () => { lang = lang == 'en' ? 'tl' : 'en'; 
 let ME = null;
 const ready = post('lookup').then(r => {
   ME = r.error ? null : r; if (!$('#dinfo')) return;
-  $('#dinfo').innerHTML = ME ? `<b>${esc(ME.guest.name)}</b><small>${esc(ME.guest.email)}</small>` : `<a href="${loginUrl()}">${t('Log in or register')}</a>`;
+  $('#dinfo').innerHTML = ME ? `<b>${esc(ME.guest.name)}${+ME.guest.vip ? ' <span class="vipbadge">VIP</span>' : ''}</b><small>${esc(ME.guest.email)}</small>` : `<a href="${loginUrl()}">${t('Log in or register')}</a>`;
   $('#dlogout').hidden = !ME; $$('.auth').forEach(x => x.hidden = !ME);
   if (ME && ME.unread) { $('#nbadge').textContent = ME.unread; $('#nbadge').hidden = false }
 });
@@ -117,7 +118,7 @@ if (bf) {
   const slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   const addDays = (d, n) => { const x = new Date(d + 'T00:00:00'); x.setDate(x.getDate() + n); return ymd(x) };
   let calMonth = ymd(new Date()).slice(0, 7), calData = null, calRoom = '', freeIds = null, seq = 0;
-  ready.then(() => { if (ME) ME.vouchers.forEach(v => bf.voucher.add(new Option(`${v.prize} (${v.code})`, v.id))); search() });
+  ready.then(() => { if (ME) ME.vouchers.filter(v => v.kind != 'free_food').forEach(v => bf.voucher.add(new Option(`${v.prize} (${v.code})`, v.id))); search() });
   const link = (id, q) => { const u = new URLSearchParams({ room: id, ci: bf.ci.value, co: bf.co.value, pax: bf.pax.value }); if (bf.voucher.value) u.set('voucher', bf.voucher.value); return 'make-reservation.php?' + u };
   const syncRoomList = () => {
     const sel = $('#croom'); if (!calData) return; const keep = calRoom;
@@ -203,7 +204,7 @@ if (mr) {
   mr.co.value = qs.get('co') > mr.ci.value ? qs.get('co') : addDays(mr.ci.value, 1);
   mr.pax.value = qs.get('pax') || cap().base_cap; mr.pax.max = cap().max_cap; mr.co.min = addDays(mr.ci.value, 1);
   if (qs.get('voucher')) { mr.voucher.value = /^\d+$/.test(qs.get('voucher')) ? 'VCH-' + qs.get('voucher') : qs.get('voucher'); $('#vbox').open = true }
-  ready.then(() => { if (ME) ME.vouchers.forEach(v => mr.vsel.add(new Option(`${v.prize} (${v.code})`, v.code))); syncV(); refresh() });
+  ready.then(() => { if (ME) ME.vouchers.filter(v => v.kind != 'free_food').forEach(v => mr.vsel.add(new Option(`${v.prize} (${v.code})`, v.code))); syncV(); refresh() });
   const syncV = () => { const c = mr.voucher.value.trim().toUpperCase(); mr.vsel.value = [...mr.vsel.options].some(o => o.value == c) ? c : '' };
   const row = (k, v, cls = '') => `<div class="srow ${cls}"><span data-t>${k}</span><b>${v}</b></div>`;
   let seq = 0, ok = false, why = '';
@@ -246,24 +247,35 @@ if (mr) {
 const qb = $('#qb');
 if (qb) { qb.ci.min = qb.co.min = ymd(new Date()); qb.ci.onchange = () => { qb.co.min = qb.ci.value } }
 
-/* ---- rewards wheel (the server picks the prize; this only animates it) ---- */
+/* ---- rewards wheel (the server picks the prize; this only animates it). The slices come from Admin > Rewards via the "wheel" action. ---- */
 if ($('#wheel')) {
-  const PR = ['20% off', '50% off', '75% + meals', 'Free Standard', 'Free Family', 'VIP'], COL = ['#0B5D4B', '#2E8B74', '#0B5D4B', '#2E8B74', '#0B5D4B', '#C8A96A'], N = 6, A = 2 * Math.PI / N; let rot = 0;
+  let PR = [], rot = 0;
+  const COL = ['#0B5D4B', '#2E8B74'], GOLD = '#C8A96A', EDGE = '#1F7A63';
+  /* alternate two greens; VIP is gold; with an odd number of slices the last one gets a third green so it never matches the first */
+  const colour = i => PR[i].kind == 'vip' ? GOLD : (i == PR.length - 1 && PR.length % 2 && i > 0 ? EDGE : COL[i % 2]);
+  const lines = s => {
+    const out = []; let cur = '';
+    s.split(/\s+/).forEach(w => { if (cur && (cur + ' ' + w).length > 13) { out.push(cur); cur = w } else cur = cur ? cur + ' ' + w : w }); if (cur) out.push(cur);
+    const l = out.slice(0, 3); if (out.length > 3) l[2] += '…'; return l
+  };
   const draw = () => {
-    const c = $('#wheel').getContext('2d'); c.clearRect(0, 0, 360, 360); c.save(); c.translate(180, 180); c.rotate(rot);
+    const c = $('#wheel').getContext('2d'); c.clearRect(0, 0, 360, 360); if (!PR.length) return;
+    const A = 2 * Math.PI / PR.length; c.save(); c.translate(180, 180); c.rotate(rot);
     PR.forEach((p, i) => {
-      const m = i * A - Math.PI / 2; c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, 170, m - A / 2, m + A / 2); c.fillStyle = COL[i]; c.fill(); c.strokeStyle = '#F7F5EF'; c.lineWidth = 2; c.stroke();
-      c.save(); c.translate(Math.cos(m) * 105, Math.sin(m) * 105); c.rotate(-rot); c.fillStyle = i == 5 ? '#12231D' : '#fff'; c.font = '600 13px Inter,sans-serif'; c.textAlign = 'center'; c.fillText(p, 0, 4); c.restore()
+      const m = i * A - Math.PI / 2; c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, 170, m - A / 2, m + A / 2); c.fillStyle = colour(i); c.fill(); c.strokeStyle = '#F7F5EF'; c.lineWidth = 2; c.stroke();
+      c.save(); c.translate(Math.cos(m) * 105, Math.sin(m) * 105); c.rotate(-rot); c.fillStyle = p.kind == 'vip' ? '#12231D' : '#fff'; c.font = `600 ${PR.length > 6 ? 11 : 13}px Inter,sans-serif`; c.textAlign = 'center';
+      const ls = lines(p.label); ls.forEach((x, n) => c.fillText(x, 0, 4 + (n - (ls.length - 1) / 2) * 14)); c.restore()
     }); c.restore()
   };
-  draw();
+  post('wheel').then(r => { PR = r.prizes || []; draw() });
   const show = r => { $('#pts').textContent = r.guest.points; $('#spin').disabled = r.guest.points < 100; $('#vl').innerHTML = r.vouchers.map(v => `<li>${esc(v.prize)}</li>`).join('') || `<li class="mu">—</li>` + (r.guest.vip ? `<li>VIP</li>` : '') };
   const load = async () => { const r = await post('lookup'); $('#rmsg').innerHTML = r.error ? `<a href="${loginUrl()}">${t('Log in or register')}</a>` : ''; if (!r.error) show(r); return r };
   load();
   $('#spin').onclick = async () => {
     $('#spin').disabled = true; $('#win').textContent = ''; const r = await post('spin');
     if (r.error) { $('#rmsg').textContent = r.error; return }
-    const start = rot, end = start + 12 * Math.PI + ((-r.index * A - start) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI), t0 = performance.now();
+    PR = r.prizes; draw(); /* the server's list is the one the prize index refers to, in case the rewards were edited meanwhile */
+    const A = 2 * Math.PI / PR.length, start = rot, end = start + 12 * Math.PI + ((-r.index * A - start) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI), t0 = performance.now();
     const step = n => {
       const k = Math.min((n - t0) / 4500, 1); rot = start + (end - start) * (1 - Math.pow(1 - k, 3)); draw();
       if (k < 1) requestAnimationFrame(step); else { $('#win').textContent = t('You won') + ' ' + r.prize; load() }

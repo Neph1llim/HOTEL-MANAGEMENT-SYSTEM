@@ -2450,3 +2450,119 @@ body:not(.admbody) > .bookband {
     html::after { display: none }
     .top { transition: none }
 }
+
+/* ---- admin: Rewards tab ---- */
+#rwp {
+    --n: 1
+}
+
+#rwaf {
+    --n: 4
+}
+
+#rwp .mu {
+    align-self: center
+}
+
+.rwtotal {
+    margin: .7rem .2rem 0;
+    font-weight: 600
+}
+
+.rwbtns {
+    order: 2;
+    margin-left: auto;
+    display: flex;
+    gap: .6rem;
+    flex-wrap: wrap
+}
+
+.rwbtns .btn {
+    margin-left: 0
+}
+
+/* longer column headings (Standard Capacity, Show on Website...) may wrap instead of widening the table */
+.admbody #rooms th,
+.admbody #rwt th {
+    white-space: normal;
+    vertical-align: bottom
+}
+
+#rwt select.in {
+    min-width: 13rem
+}
+
+#rwt input:disabled {
+    opacity: .45
+}
+
+#rwaf {
+    grid-template-columns: 14rem 15rem 9.5rem 9.5rem auto
+}
+
+@media(max-width:850px) {
+    #rwaf {
+        grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr))
+    }
+}
+
+/* ---- Admin > Rewards: room + nights on free-room rewards, reward types ---- */
+.rwdet {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap
+}
+
+#rwt .rwdet select.in {
+    min-width: 11rem
+}
+
+.rwn {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    white-space: nowrap
+}
+
+.rwn .in.num {
+    width: 4.5rem
+}
+
+#rwaf {
+    width: 100%;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 14rem));
+    justify-content: start
+}
+
+#rwaf [hidden] {
+    display: none !important
+}
+
+#rwaf .btn {
+    grid-column: auto;
+    justify-self: start
+}
+
+#rtt th {
+    white-space: normal;
+    vertical-align: bottom
+}
+
+/* VIP tag next to the guest's name at the top of the menu */
+.dinfo b {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .5rem
+}
+
+.vipbadge {
+    display: inline-block;
+    padding: .12rem .55rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #E6CB8E, #C8A96A);
+    color: #12231D;
+    font: 700 .68rem/1.4 var(--bd);
+    letter-spacing: .12em
+}
