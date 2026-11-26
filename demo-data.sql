@@ -1,7 +1,7 @@
 -- Bella Vista DEMO DATA. phpMyAdmin > bellavista > Import > this file > Go.
 -- Only adds rows, so run it on a freshly imported (or cleared) database. To restart the demo later, import reset-demo.sql.
 -- Demo logins: admin / admin123  |  maria@demo.com, juan@demo.com, carlo@demo.com, ana@demo.com, liza@demo.com / guest123
--- Needs the tables from database.sql first (including minigame_claims).
+-- Needs the tables from database.sql first (including minigame_claims and vouchers.expires_at).
 -- MINIGAME DEMO (Rewards page > Daily minigames, 1 claim per game per day, max 5 points each):
 --   juan@demo.com   95 points, nothing claimed today: play and claim a game and he reaches 100, so the Spin button unlocks.
 --   maria@demo.com  128 points, claimed both games YESTERDAY only: both games are playable today (yesterday does not count).
@@ -18,10 +18,16 @@ INSERT INTO guests (id, name, email, phone, pass, points, vip) VALUES
     (5, 'Liza Bautista', 'liza@demo.com', '09171110005', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 0, 0),
     (6, 'Pedro Ramos', NULL, '09171110006', NULL, 0, 0);
 
--- Vouchers: Maria has an unused 50% voucher; Juan's 75% voucher was already used on BVD0004.
-INSERT INTO vouchers (id, guest_id, prize, kind, pct, status, created_at) VALUES
-    (1, 1, '50% discount voucher', 'pct', 50, 'unused', DATE_SUB(NOW(), INTERVAL 40 DAY)),
-    (2, 2, '75% discount voucher + meal stubs', 'pct', 75, 'used', DATE_SUB(NOW(), INTERVAL 30 DAY));
+-- Vouchers (valid for 30 days). Log in as maria@demo.com to see every expiry state:
+--   VCH-1  50% off, expires in 25 days (usable)
+--   VCH-3  20% off, expires in 3 days (usable, highlighted as expiring soon)
+--   VCH-4  20% off, expired 10 days ago (shown as expired, cannot be used)
+-- Juan's 75% voucher (VCH-2) was already used on BVD0004.
+INSERT INTO vouchers (id, guest_id, prize, kind, pct, status, created_at, expires_at) VALUES
+    (1, 1, '50% discount voucher', 'pct', 50, 'unused', DATE_SUB(NOW(), INTERVAL 5 DAY), TIMESTAMP(DATE_ADD(CURDATE(), INTERVAL 25 DAY), '23:59:59')),
+    (2, 2, '75% discount voucher + meal stubs', 'pct', 75, 'used', DATE_SUB(NOW(), INTERVAL 30 DAY), TIMESTAMP(CURDATE(), '23:59:59')),
+    (3, 1, '20% discount voucher', 'pct', 20, 'unused', DATE_SUB(NOW(), INTERVAL 27 DAY), TIMESTAMP(DATE_ADD(CURDATE(), INTERVAL 3 DAY), '23:59:59')),
+    (4, 1, '20% discount voucher', 'pct', 20, 'unused', DATE_SUB(NOW(), INTERVAL 40 DAY), TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 10 DAY), '23:59:59'));
 
 -- Minigame claims (points are already included in each guest's balance above)
 INSERT INTO minigame_claims (guest_id, game, day, points, created_at) VALUES
