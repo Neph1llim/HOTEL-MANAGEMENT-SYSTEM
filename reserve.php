@@ -29,6 +29,7 @@
 .calbar b { font-size: 1.05rem; min-width: 8rem }
 #book { padding-bottom: 0 }
 #availability { padding-top: 0 }
+#roomresults { scroll-margin-top: 6rem }
 .vnote { margin: .8rem 0 0; padding: .6rem .9rem; color: #F5F2EB; background: #0A2214; border-left: 4px solid #D4AF37; border-radius: 8px }
 </style>
 <section id="book" class="wrap">
