@@ -248,15 +248,25 @@ if (mr) {
     /* rooms that are full for these dates are flagged in the dropdown */
     if (!s.error) s.rooms.forEach(x => { const o = [...mr.room.options].find(o => o.value == x.room.id); if (o) { const base = `${x.room.name} · ${peso(x.room.rate)}`; o.disabled = !x.free && x.room.id != mr.room.value; o.textContent = x.free ? base : `${base} (${t('Unavailable')})` } });
     const r = byId(mr.room.value), code = mr.voucher.value.trim(), im = $('#sumimg');
-    im.hidden = false; im.innerHTML = `<span>${esc(r.name)}</span><img src="${roomImagePath(r.name, r.type)}" alt="${esc(r.name)}" loading="lazy" onerror="this.remove()">`; 
-    ok = false; why = ''; $('#smsg').textContent = '';
-    if (code) { const v = ME?.vouchers.find(v => v.code == code.toUpperCase() || v.id == code); $('#vmsg').className = q.voucher_ok ? 'ok' : 'err'; $('#vmsg').textContent = q.voucher_ok ? t('Voucher applied') + ': ' + (v ? v.prize + (v.expires ? ` · ${t('Use by')} ${v.expires}` : '') : code) : t(q.error && /oucher/.test(q.error) ? q.error : 'Voucher not valid') } else { $('#vmsg').textContent = '' }
+    im.hidden = false; im.innerHTML = `<span>${esc(r.name)}</span><img src="${roomImagePath(r.name, r.type)}" alt="${esc(r.name)}" loading="lazy" onerror="this.remove()">`;
+    ok = false; why = ''; $('#smsg').textContent = ''; vnote(q, code);
     if (q.nights === undefined) { sum.innerHTML = row('Accommodation / Room', esc(r.name)); why = q.error || 'Invalid dates'; $('#smsg').textContent = t(why); applyLang(); return }
-    const balance = Math.max(0, q.total - q.down);
-    sum.innerHTML = row('Accommodation / Room', esc(r.name)) + row(`Room rate (${q.nights} night(s))`, peso(q.sub)) + row('Additional guests', peso(q.extra)) + (+q.disc > 0 ? row('Discount', '−' + peso(q.disc)) : '') +
+    const balance = Math.max(0, q.total - q.down), vi = q.voucher;
+    const dLabel = !vi ? 'Discount' : vi.kind == 'pct' ? `Voucher (${vi.pct}% off)` : `Free-night voucher (${vi.free_nights} of ${q.nights} night${q.nights > 1 ? 's' : ''})`;
+    sum.innerHTML = row('Accommodation / Room', esc(r.name)) + row(`Room rate (${q.nights} night(s))`, peso(q.sub)) + row('Additional guests', peso(q.extra)) + (+q.disc > 0 ? row(dLabel, '−' + peso(q.disc), 'vdisc') : '') +
       row('Estimated total', peso(q.total), 'tot') + row('50% downpayment', peso(q.down), 'dp') + row('Balance due upon check-in', peso(balance), 'mu');
+    const free = +q.total <= 0;   /* voucher covers everything: no payment step */
+    if (free) sum.innerHTML += '<p class="vmsg ok">No payment needed: your voucher covers the whole stay. The reservation is confirmed right away.</p>';
+    $('#reserveBtn').dataset.en = free ? 'Confirm free stay' : 'Continue to payment';
     why = q.error && !(code && /oucher/.test(q.error)) ? q.error : (!q.free ? 'Not available for these dates' : (code && !q.voucher_ok ? (/oucher/.test(q.error || '') ? q.error : 'Voucher not valid') : ''));
     $('#smsg').textContent = t(why); ok = !why; applyLang()
+  }
+  /* voucher message under the code box: green = fully applied, gold = partly applied, red = does not apply to this room */
+  function vnote(q, code) {
+    const el = $('#vmsg'), vi = q.voucher; el.className = 'vmsg'; el.textContent = '';
+    if (!code) return;
+    if (vi && vi.status != 'none') { el.classList.add(vi.status == 'partial' ? 'warn' : 'ok'); el.textContent = `${t('Voucher applied')}: ${vi.prize} — ${vi.note}` }
+    else { el.classList.add('err'); el.textContent = t(vi ? vi.note : (q.error && /oucher/.test(q.error) ? q.error : 'Voucher not valid')) }
   }
   let tm; const live = () => { clearTimeout(tm); tm = setTimeout(refresh, 120) };
   mr.room.addEventListener('change', () => { mr.pax.value = cap().base_cap; mr.pax.max = cap().max_cap; refresh() });
@@ -275,7 +285,7 @@ if (mr) {
     await refresh(); if (!ok) { alert(t(why || 'Invalid dates')); return }
     const b = $('#reserveBtn'); b.disabled = true; const r = await post('book', { ...payload(), agree: 1 });
     if (r.error) { b.disabled = false; $('#smsg').textContent = r.error; alert(r.error); refresh(); return }
-    location = 'payment.php?ref=' + encodeURIComponent(r.ref)
+    location = r.free ? 'reservations.php' : 'payment.php?ref=' + encodeURIComponent(r.ref)
   });
 }
 const qb = $('#qb');
