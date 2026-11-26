@@ -11,12 +11,12 @@
             <h3 class="fh" data-t>Contact us</h3>
             <div class="fc">
                 <span class="fc-label" data-t>Mobile</span>
-                <a href="tel:+639000000001">+63 900 000 0001</a>
+                <a href="tel:+639000000001">+63 985 216 6073</a>
 
             </div>
             <div class="fc">
                 <span class="fc-label" data-t>Landline</span>
-                <a href="tel:+63200000001">(02) 8000 0001</a>
+                <a href="tel:+63200000001">(043) 724-7433</a>
             </div>
             <div class="fc">
                 <span class="fc-label" data-t>Email</span>
