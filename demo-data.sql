@@ -11,12 +11,12 @@ USE bellavista;
 
 -- Guests (password for every demo guest: guest123). Pedro Ramos is a walk-in guest with no online account.
 INSERT INTO guests (id, name, email, phone, pass, points, vip) VALUES
-    (1, 'Maria Santos', 'maria@demo.com', '09171110001', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 128, 0),
-    (2, 'Juan Dela Cruz', 'juan@demo.com', '09171110002', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 95, 0),
-    (3, 'Carlo Mendoza', 'carlo@demo.com', '09171110003', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 79, 1),
-    (4, 'Ana Reyes', 'ana@demo.com', '09171110004', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 0, 0),
-    (5, 'Liza Bautista', 'liza@demo.com', '09171110005', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 0, 0),
-    (6, 'Pedro Ramos', NULL, '09171110006', NULL, 0, 0);
+    (1, 'Maria Santos', 'Maria', 'Santos', 'mariasantos@gmail.com', '09173169876', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 128, 0),
+    (2, 'Juan Dela Cruz','Juan', 'Dela Cruz', 'juandecruz@gmail.com', '09871239865', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 95, 0),
+    (3, 'Carlo Mendoza','Carlo', 'Mendoza', 'carloMendoza@gmail.com', '09179871356', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 79, 1),
+    (4, 'Ana Reyes', 'Ana', 'Reyes', 'anaReyez@gmail.com', '091711657894', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 0, 0),
+    (5, 'Liza Bautista', 'Liza', 'Bautista', 'lizaBautista@gmail.com', '09171110005', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 0, 0),
+    (6, 'Pedro Ramos', 'Pedro', 'Ramos', NULL, '09171110006', NULL, 0, 0);
 
 -- Vouchers (valid for 30 days). Log in as maria@demo.com to see every expiry state:
 --   VCH-1  50% off, expires in 25 days (usable)
