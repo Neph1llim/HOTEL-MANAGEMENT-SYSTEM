@@ -1,6 +1,25 @@
 <?php require 'config.php';
 $bodyClass = 'flow';
 include 'head.php';
+?>
+<style>
+/* voucher box: scoped to the make-reservation form, style.css is not touched */
+#mr{--bv-green:#0A2214;--bv-gold:#D4AF37;--bv-cream:#F5F2EB}
+#mr>*{min-width:0}
+#mr .vbox{box-sizing:border-box;width:100%;max-width:100%;overflow:hidden;background:var(--bv-cream);border:1px solid rgba(10,34,20,.18);border-left:4px solid var(--bv-gold);border-radius:12px;padding:.85rem 1rem}
+#mr .vbox>summary{cursor:pointer;font-weight:600;color:var(--bv-green)}
+#mr .vbox .vgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,12.5rem),1fr));gap:.9rem 1rem;width:100%;margin-top:.9rem}
+#mr .vbox .vgrid label{display:flex;flex-direction:column;gap:.35rem;min-width:0;max-width:100%;margin:0;font-size:.85rem;color:var(--bv-green)}
+#mr .vbox .vgrid select,#mr .vbox .vgrid input{box-sizing:border-box;width:100%;max-width:100%;min-width:0;padding:.6rem .7rem;font:inherit;color:var(--bv-green);background:#fff;border:1px solid rgba(10,34,20,.28);border-radius:8px;text-overflow:ellipsis}
+#mr .vbox .vgrid select:focus,#mr .vbox .vgrid input:focus{outline:2px solid var(--bv-gold);outline-offset:1px}
+#mr .vmsg:not(:empty){margin:.8rem 0 0;padding:.6rem .8rem;border-left:4px solid;border-radius:8px;font-size:.88rem;line-height:1.4;overflow-wrap:anywhere}
+#mr .vmsg.ok{background:rgba(10,34,20,.07);border-color:var(--bv-green);color:var(--bv-green)}
+#mr .vmsg.warn{background:rgba(212,175,55,.18);border-color:var(--bv-gold);color:#5c4a08}
+#mr .vmsg.err{background:rgba(160,40,30,.08);border-color:#a02820;color:#8a2a22}
+#sum .vdisc,#sum .vdisc b{color:var(--bv-green)}
+#sum .vmsg.ok{margin:.8rem 0 0;padding:.6rem .8rem;border-left:4px solid var(--bv-green,#0A2214);border-radius:8px;background:rgba(10,34,20,.07);color:#0A2214;font-size:.88rem;line-height:1.4}
+</style>
+<?php
 $rooms = $pdo->query('SELECT id,name,type,rate,base_cap,max_cap FROM rooms WHERE active=1 ORDER BY id')->fetchAll(); ?>
 <section class="flowhero">
     <div class="wrap">

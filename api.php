@@ -9,6 +9,34 @@ function resById($pdo,$id,$lock=false){$s=$pdo->prepare('SELECT * FROM reservati
 function wheelSlices($pr){$o=[];foreach($pr as $p)$o[]=['label'=>$p['label'],'kind'=>$p['base']];return $o;}
 /* a voucher can be given as its id or as its code (VCH-<id>); returns the id or null */
 function vid($v){$v=strtoupper(trim((string)$v));if($v==='')return null;if(preg_match('/^(?:VCH-?)?0*(\d+)$/',$v,$m))return (int)$m[1];return -1;}
+/* price a stay with an optional voucher. Free-night vouchers are checked against the selected room and capped at the nights booked. */
+function vquote($pdo,$room,$ci,$co,$pax,$vid,$gid){
+ if(!$vid)return quote($pdo,$room,$ci,$co,$pax,null,$gid);
+ $q=quote($pdo,$room,$ci,$co,$pax,null,null);                 /* list price: no VIP, no voucher */
+ if(!isset($q['nights']))return $q;
+ $s=$pdo->prepare('SELECT * FROM vouchers WHERE id=? AND guest_id=? AND status="unused"');$s->execute([$vid,(int)$gid]);$v=$s->fetch();
+ if(!$v)return ['error'=>'Voucher not valid']+$q;
+ $s=$pdo->prepare('SELECT name,type,rate FROM rooms WHERE id=?');$s->execute([$room]);$r=$s->fetch();
+ $info=['kind'=>$v['kind'],'prize'=>$v['prize'],'status'=>'full','pct'=>(int)$v['pct'],'free_nights'=>0,'allowed'=>0,'note'=>''];$d=0;
+ if($v['kind']==='pct'){
+  $d=round($q['sub']*$v['pct']/100,2);$info['note']=$v['pct'].'% off the room rate ('.peso($d).')';
+ }elseif(strpos($v['kind'],'free_')===0&&$v['kind']!=='free_food'){
+  $type=$v['room_type']?:(preg_match('/^free_(standard|family)$/',$v['kind'],$m)?$m[1]:null);   /* old vouchers store the type in the kind */
+  $allowed=max(1,(int)($v['nights']?:2));$bad='';
+  if($r['type']==='hall')$bad='Free-night vouchers cannot be used for the Event Hall';
+  elseif($v['room_id']&&(int)$v['room_id']!==(int)$room){$n=$pdo->prepare('SELECT name FROM rooms WHERE id=?');$n->execute([$v['room_id']]);$bad='This voucher is only for '.($n->fetchColumn()?:'another room').', not '.$r['name'];}
+  elseif(!$v['room_id']&&$type&&$type!==$r['type'])$bad='This voucher is only for '.($type==='family'?'Family':'Standard').' rooms, not '.$r['name'];
+  if($bad)return ['error'=>$bad,'voucher'=>array_merge($info,['status'=>'none','note'=>$bad])]+$q;
+  $free=min((int)$q['nights'],$allowed);$d=$r['rate']*$free;
+  $info['free_nights']=$free;$info['allowed']=$allowed;
+  if($q['nights']>$allowed){$info['status']='partial';$info['note']="covers $free of your {$q['nights']} nights; the other ".($q['nights']-$free).' night(s) are charged at the regular rate';}
+  elseif($q['nights']<$allowed)$info['note']="covers all {$q['nights']} of your night(s) (the voucher allows $allowed)";
+  else $info['note']="covers all $free night(s)";
+ }else return ['error'=>'This voucher cannot be used for room bookings']+$q;
+ $q['disc']=$d;$q['total']=$q['sub']+$q['extra']-$d;$q['down']=round($q['total']/2,2);$q['voucher']=$info;
+ return $q;
+}
+
 /* days a new voucher stays valid (settings.voucher_days, default 30) */
 function voucherDays($pdo){$d=(int)$pdo->query("SELECT v FROM settings WHERE k='voucher_days'")->fetchColumn();return $d>0?$d:30;}
 /* true when this guest's voucher is past its use-by time */
@@ -34,14 +62,14 @@ case 'search':
  $g=guest($pdo);$out=[];
  $v=vid(P('voucher'));$x=vexpired($pdo,$v,$g['id']??null);
  foreach($pdo->query('SELECT * FROM rooms WHERE active=1 ORDER BY id')->fetchAll() as $r){
-  $q=quote($pdo,$r['id'],P('ci'),P('co'),(int)P('pax'),$x?null:$v,$g['id']??null);
+  $q=vquote($pdo,$r['id'],P('ci'),P('co'),(int)P('pax'),$x?null:$v,$g['id']??null);
   if(!empty($q['fatal']))j($q,422);
   if($x)$q['error']=$q['error']??'This voucher has expired';
   $q['room']=$r;$q['free']=avail($pdo,$r['id'],P('ci'),P('co'));$out[]=$q;}
  j(['rooms'=>$out]);
 case 'quote': /* live price for one room: used by the Make Reservation summary, updates as dates, guests or voucher change */
  $g=guest($pdo);$vid=vid(P('voucher'));$x=vexpired($pdo,$vid,$g['id']??null);
- $q=quote($pdo,(int)P('room'),P('ci'),P('co'),(int)P('pax'),$x?null:$vid,$g['id']??null);
+ $q=vquote($pdo,(int)P('room'),P('ci'),P('co'),(int)P('pax'),$x?null:$vid,$g['id']??null);
  if($x&&empty($q['fatal']))$q['error']=$q['error']??'This voucher has expired';
  if($vid&&!$g)$q=['error'=>'Log in to use a voucher']+(isset($q['nights'])?$q:[]);
  $q['free']=empty($q['fatal'])&&avail($pdo,(int)P('room'),P('ci'),P('co'));
@@ -60,13 +88,14 @@ case 'book':
  $gid=$g['id'];
  $vid=vid(P('voucher'));
  if(vexpired($pdo,$vid,$gid,true)){$pdo->rollBack();j(['error'=>'This voucher has expired'],409);}
- $q=quote($pdo,(int)P('room'),P('ci'),P('co'),(int)P('pax'),$vid,$gid);
+ $q=vquote($pdo,(int)P('room'),P('ci'),P('co'),(int)P('pax'),$vid,$gid);
  if(isset($q['error'])||!avail($pdo,P('room'),P('ci'),P('co'))){$pdo->rollBack();j(['error'=>$q['error']??'Sorry, this room was just booked'],409);}
  $ref='BV'.strtoupper(bin2hex(random_bytes(3)));
- $pdo->prepare('INSERT INTO reservations(ref,guest_id,room_id,checkin,checkout,pax,extra_fee,discount,total,downpayment,voucher_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)')->execute([$ref,$gid,P('room'),P('ci'),P('co'),(int)P('pax'),$q['extra'],$q['disc'],$q['total'],$q['down'],$vid]);
+ $free=$q['total']<=0; /* a voucher covers the whole stay: nothing to pay, so it is approved straight away */
+ $pdo->prepare('INSERT INTO reservations(ref,guest_id,room_id,checkin,checkout,pax,extra_fee,discount,total,downpayment,voucher_id,status) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)')->execute([$ref,$gid,P('room'),P('ci'),P('co'),(int)P('pax'),$q['extra'],$q['disc'],$q['total'],$q['down'],$vid,$free?'approved':'pending']);
  if($vid)$pdo->prepare('UPDATE vouchers SET status="used" WHERE id=?')->execute([$vid]);
- notify($pdo,$gid,"Reservation $ref received. Please pay the downpayment of ".peso($q['down'])." and upload your proof of payment within ".HOLD_HOURS." hours, or the room will be released.");
- $pdo->commit();j(['ref'=>$ref,'total'=>$q['total'],'down'=>$q['down'],'hold_hours'=>HOLD_HOURS]);
+ notify($pdo,$gid,$free?"Reservation $ref is confirmed. Your voucher covers the whole stay, so there is nothing to pay.":"Reservation $ref received. Please pay the downpayment of ".peso($q['down'])." and upload your proof of payment within ".HOLD_HOURS." hours, or the room will be released.");
+ $pdo->commit();j(['ref'=>$ref,'total'=>$q['total'],'down'=>$q['down'],'hold_hours'=>HOLD_HOURS,'free'=>$free]);
 case 'pay':
  $g=guest($pdo);$s=$pdo->prepare('SELECT * FROM reservations WHERE ref=? AND guest_id=?');$s->execute([P('ref'),$g['id']??0]);$r=$s->fetch();
  if($r&&$r['status']=='cancelled'&&$r['cancel_reason']=='expired')j(['error'=>'This reservation expired because no payment was received in time. Please make a new reservation.'],422);
