@@ -10,7 +10,7 @@
 USE bellavista;
 
 -- Guests (password for every demo guest: guest123). Pedro Ramos is a walk-in guest with no online account.
-INSERT INTO guests (id, name, email, phone, pass, points, vip) VALUES
+INSERT INTO guests (id, name, first_name, last_name, email, phone, pass, points, vip) VALUES
     (1, 'Maria Santos', 'Maria', 'Santos', 'mariasantos@gmail.com', '09173169876', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 128, 0),
     (2, 'Juan Dela Cruz','Juan', 'Dela Cruz', 'juandecruz@gmail.com', '09871239865', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 95, 0),
     (3, 'Carlo Mendoza','Carlo', 'Mendoza', 'carloMendoza@gmail.com', '09179871356', '$2y$10$W99YhPeaem5MncVs2EBWbehW47L8RwfA27Yw//kDeKVDwEh9OhwoK', 79, 1),
